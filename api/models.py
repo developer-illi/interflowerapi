@@ -12,6 +12,7 @@ class Association_greeting(models.Model):
     def __str__(self):
         return self.name
 #협회소개 - 연혁
+
 #연혁 - 연도
 class Association_history_year(models.Model):
     year = models.TextField(null=False, default='2026')
@@ -22,6 +23,7 @@ class Association_history_year(models.Model):
 class Association_history_month(models.Model):
     month = models.TextField(null=False, default='2026.04')
     content = models.TextField(null=False, default='내용')
+    img = models.ImageField(upload_to='history_img', null=True)
 
     def __str__(self):
         return self.content
