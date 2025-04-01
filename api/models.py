@@ -133,23 +133,47 @@ class Contests(models.Model):
     def __str__(self):
         return self.title
 
+#주요사업 - 대외활동 - content
 class Contests_content(models.Model):
     title = models.CharField(max_length=200, null=False, default='대외활동')
     upload_date = models.DateTimeField(auto_now=True)
     place = models.TextField(null=True)
     contests = models.ForeignKey(Contests, related_name='contest_title', on_delete=models.CASCADE)
 
-
+#주요사업 - 대외활동 - content - 게시판
 class Contests_Block(models.Model):
     BLOCK_TYPES = (
         ('text', 'Text'),
         ('image', 'Image'),
         ('video', 'Video'),
     )
-    post = models.ForeignKey(Contests_content, related_name='contests_block', on_delete=models.CASCADE)
+    contests_content = models.ForeignKey(Contests_content, related_name='contests_block', on_delete=models.CASCADE)
     block_type = models.CharField(max_length=10, choices=BLOCK_TYPES)
     content = models.TextField()  # 텍스트 내용이거나, 이미지 URL, 동영상 링크 등
     order = models.IntegerField(default=0)  # 게시글 내 노출 순서
 
     def __str__(self):
         return self.content
+
+#공지사항
+class Notice(models.Model):
+    title = models.CharField(max_length=200, null=False)
+    upload_date = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        self.title
+
+#공지사항 - 게시판내용
+class Notice_content(models.Model):
+    BLOCK_TYPES = (
+        ('text', 'Text'),
+        ('image', 'Image'),
+        ('video', 'Video'),
+    )
+    notice = models.ForeignKey(Notice, related_name='notice_content', on_delete=models.CASCADE)
+    block_type = models.CharField(max_length=10, choices=BLOCK_TYPES)
+    content = models.TextField()  # 텍스트 내용이거나, 이미지 URL, 동영상 링크 등
+    order = models.IntegerField(default=0)  # 게시글 내 노출 순서
+
+    def __str__(self):
+        return self.notice
