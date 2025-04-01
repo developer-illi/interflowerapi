@@ -48,6 +48,7 @@ class News(models.Model):
     def __str__(self):
         return self.title
 
+#협회 소식 -- 내용
 class News_content(models.Model):
     BLOCK_TYPES = (
         ('text', 'Text'),
@@ -58,3 +59,23 @@ class News_content(models.Model):
     block_type = models.CharField(max_length=10, choices=BLOCK_TYPES)
     content = models.TextField()  # 텍스트일 경우 내용, 이미지일 경우 이미지 URL 혹은 관련 정보
     order = models.IntegerField(default=0)
+
+#주요 사업( ex -- 국제꽃장식대회, 꽃생활화, 고양꽃박람회, 농업박람회, 양재플라워페스타)
+class Industry(models.Model):
+    title = models.CharField(max_length=252, default='국제꽃장식대회')
+    sub_title = models.TextField(null=True, default='글로벌 플로리스트 주요사업')
+    content = models.TextField(null=True)
+
+    def __str__(self):
+        return self.title
+
+#주요사업 - 국제꽃장식대회 - content
+class Internationer_flower_content(models.Model):
+    title = models.CharField(max_length=100, null=False, default='flower')
+    content = models.TextField(null=True)
+    img = models.ImageField(upload_to='Inter_flower')
+    create_at = models.DateTimeField(auto_now_add=True)
+    industry = models.ForeignKey(on_delete=models.CASCADE)
+
+    def __str__(self):
+        return self.title
