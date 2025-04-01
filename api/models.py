@@ -2,15 +2,31 @@ from django.db import models
 from django.utils import timezone
 from datetime import timedelta
 # Create your models here.
-class Greeting(models.Model):
+
+#협회소개-인삿말
+class Association_greeting(models.Model):
     title = models.TextField(null=True, default='제목을 입력해주세요')
     content = models.TextField(null=True, default='내용을 입력해주세요')
     name = models.CharField(max_length=10, default='이름을 입력해주세요')
 
     def __str__(self):
         return self.name
+#협회소개 - 연혁
+#연혁 - 연도
+class Association_history_year(models.Model):
+    year = models.TextField(null=False, default='2026')
 
+    def __str__(self):
+        return self.year
+#연혁 - 연도+월+subscript sub_table
+class Association_history_month(models.Model):
+    month = models.TextField(null=False, default='2026.04')
+    content = models.TextField(null=False, default='내용')
 
+    def __str__(self):
+        return self.content
+
+#협회 소식
 class News(models.Model):
     CATEGORY_CHOICES = [
         ('issue', '최근 이슈'),
@@ -27,3 +43,16 @@ class News(models.Model):
         if timezone.now() - self.created_at > timedelta(days=7):
             self.category = 'press'
             self.save()
+    def __str__(self):
+        return self.title
+
+class News_content(models.Model):
+    BLOCK_TYPES = (
+        ('text', 'Text'),
+        ('image', 'Image'),
+        # ('video', 'Video'), 등 추가 가능
+    )
+    news = models.ForeignKey(News, related_name='blocks', on_delete=models.CASCADE)
+    block_type = models.CharField(max_length=10, choices=BLOCK_TYPES)
+    content = models.TextField()  # 텍스트일 경우 내용, 이미지일 경우 이미지 URL 혹은 관련 정보
+    order = models.IntegerField(default=0)
