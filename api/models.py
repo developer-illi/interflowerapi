@@ -60,25 +60,65 @@ class News_content(models.Model):
     content = models.TextField()  # 텍스트일 경우 내용, 이미지일 경우 이미지 URL 혹은 관련 정보
     order = models.IntegerField(default=0)
 
-#주요 사업( ex -- 국제꽃장식대회, 꽃생활화, 고양꽃박람회, 농업박람회, 양재플라워페스타)
-class Industry(models.Model):
-    title = models.CharField(max_length=252, default='국제꽃장식대회')
+#주요 사업
+class Local(models.Model):#국내전시
+    title = models.CharField(max_length=252, default='국내전시')
     sub_title = models.TextField(null=True, default='글로벌 플로리스트 주요사업')
     content = models.TextField(null=True)
-    img = models.ImageField(upload_to='Industry')
+    img = models.ImageField(upload_to='Local', null=True)
 
     def __str__(self):
         return self.title
 
 #주요사업 - 국제꽃장식대회 - content
-class Industry_content(models.Model):
+class Local_content(models.Model):#국내전시 - sub_content
     title = models.CharField(max_length=100, null=False, default='flower')
     content = models.TextField(null=True)
-    img = models.ImageField(upload_to='Industry_content')
+    img = models.ImageField(upload_to='Local_sub_content', null=True)
     create_at = models.DateTimeField(auto_now_add=True)
-    industry = models.ForeignKey(on_delete=models.CASCADE)
+    local = models.ForeignKey(on_delete=models.CASCADE)
 
     def __str__(self):
         return self.title
 
-class
+#주요산업 -- 국외전시
+class Overseas(models.Model):#국외전시
+    title = models.CharField(max_length=252, default='국외전시')
+    sub_title = models.TextField(null=True, default='글로벌 플로리스트 주요사업')
+    content = models.TextField(null=True)
+    img = models.ImageField(upload_to='Overseas', null=True)
+
+    def __str__(self):
+        return self.title
+
+#주요산업 - 국외전시 - subcontent
+class Overseas_content(models.Model):#국외전시 - sub_content
+    title = models.CharField(max_length=100, null=False, default='flower')
+    content = models.TextField(null=True)
+    img = models.ImageField(upload_to='Overseas_sub_content', null=True)
+    create_at = models.DateTimeField(auto_now_add=True)
+    local = models.ForeignKey(on_delete=models.CASCADE)
+
+    def __str__(self):
+        return self.title
+
+#주요산업 - 자격증
+class License(models.Model):
+    title = models.CharField(max_length=252, default='국외전시')
+    sub_title = models.TextField(null=True, default='글로벌 플로리스트 주요사업')
+    content = models.TextField(null=True)
+    img = models.ImageField(upload_to='Overseas', null=True)
+
+    def __str__(self):
+        return self.title
+
+#주요산업 - 자격증 - 자격증content
+class License_content(models.Model):#자격증
+    title = models.CharField(max_length=200, null=False, default="자격증")
+    content = models.TextField(null=True, default='content')
+    img = models.ImageField(upload_to="License", null=True)
+    license_script = models.TextField(null=True, default='content')
+    link = models.TextField(null=True)
+
+    def __str__(self):
+        return self.title
