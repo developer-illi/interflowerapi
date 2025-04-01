@@ -65,17 +65,20 @@ class Industry(models.Model):
     title = models.CharField(max_length=252, default='국제꽃장식대회')
     sub_title = models.TextField(null=True, default='글로벌 플로리스트 주요사업')
     content = models.TextField(null=True)
+    img = models.ImageField(upload_to='Industry')
 
     def __str__(self):
         return self.title
 
 #주요사업 - 국제꽃장식대회 - content
-class Internationer_flower_content(models.Model):
+class Industry_content(models.Model):
     title = models.CharField(max_length=100, null=False, default='flower')
     content = models.TextField(null=True)
-    img = models.ImageField(upload_to='Inter_flower')
+    img = models.ImageField(upload_to='Industry_content')
     create_at = models.DateTimeField(auto_now_add=True)
     industry = models.ForeignKey(on_delete=models.CASCADE)
 
     def __str__(self):
         return self.title
+
+class
