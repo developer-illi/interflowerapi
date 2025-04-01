@@ -76,7 +76,7 @@ class Local_content(models.Model):#국내전시 - sub_content
     content = models.TextField(null=True)
     img = models.ImageField(upload_to='Local_sub_content', null=True)
     create_at = models.DateTimeField(auto_now_add=True)
-    local = models.ForeignKey(on_delete=models.CASCADE)
+    local = models.ForeignKey(Local, on_delete=models.CASCADE)
 
     def __str__(self):
         return self.title
@@ -97,7 +97,7 @@ class Overseas_content(models.Model):#국외전시 - sub_content
     content = models.TextField(null=True)
     img = models.ImageField(upload_to='Overseas_sub_content', null=True)
     create_at = models.DateTimeField(auto_now_add=True)
-    local = models.ForeignKey(on_delete=models.CASCADE)
+    overseas = models.ForeignKey(Overseas ,on_delete=models.CASCADE)
 
     def __str__(self):
         return self.title
@@ -122,3 +122,34 @@ class License_content(models.Model):#자격증
 
     def __str__(self):
         return self.title
+
+#주요산업 - 대외활동
+class Contests(models.Model):
+    title = models.CharField(max_length=200, null=False, default='대외활동')
+    sub_title = models.TextField(null=True)
+    content = models.TextField(null=True, default='content')
+    img = models.ImageField(upload_to='Contests', null=True)
+
+    def __str__(self):
+        return self.title
+
+class Contests_content(models.Model):
+    title = models.CharField(max_length=200, null=False, default='대외활동')
+    upload_date = models.DateTimeField(auto_now=True)
+    place = models.TextField(null=True)
+    contests = models.ForeignKey(Contests, related_name='contest_title', on_delete=models.CASCADE)
+
+
+class Contests_Block(models.Model):
+    BLOCK_TYPES = (
+        ('text', 'Text'),
+        ('image', 'Image'),
+        ('video', 'Video'),
+    )
+    post = models.ForeignKey(Contests_content, related_name='contests_block', on_delete=models.CASCADE)
+    block_type = models.CharField(max_length=10, choices=BLOCK_TYPES)
+    content = models.TextField()  # 텍스트 내용이거나, 이미지 URL, 동영상 링크 등
+    order = models.IntegerField(default=0)  # 게시글 내 노출 순서
+
+    def __str__(self):
+        return self.content
