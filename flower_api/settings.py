@@ -9,8 +9,11 @@ https://docs.djangoproject.com/en/5.1/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.1/ref/settings/
 """
-
+import os.path
 from pathlib import Path
+from django.conf import settings
+from decouple import config
+from django.template.defaultfilters import default
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -20,12 +23,12 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-&abm$l#-=afqwc%wlwg0lm3loelni%%ob0rjxsz8ty&(dbv-q9'
-
+#SECRET_KEY = 'django-insecure-&abm$l#-=afqwc%wlwg0lm3loelni%%ob0rjxsz8ty&(dbv-q9'
+SECRET_KEY = config('SECRET_KEY')
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = config('DJANGO_DEBUG', default=False, cast=bool)
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition
@@ -37,6 +40,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'rest_framework',
     'commands',
     'api'
 ]
@@ -75,13 +79,31 @@ WSGI_APPLICATION = 'flower_api.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
+#      -- DB환경 세팅시 운용환경 or 테스트환경
+#          사용하지 않는 분야는 주석 처리 할것
+
+#실 운용 환경
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.postgresql',
+#         'NAME': config('DATABASE_NAME'),
+#         'USER': config('DATABASE_USER'),
+#         'PASSWORD': config('DATABASE_PASSWORD'),
+#         'HOST': config('DATABASE_HOST'),
+#         'PORT': config('DATABASE_PORT'),
+#     }
+# }
+#테스트 환경
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'flower_teest',
+        'USER': 'postgres',
+        'PASSWORD': '1235gg',
+        'HOST': 'localhost',
+        'PORT': '5432',
     }
 }
-
 
 # Password validation
 # https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators
@@ -118,6 +140,26 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.1/howto/static-files/
 
 STATIC_URL = 'static/'
+#실 운용시 collectstatic 명령어로 생성
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+
+#테스트 환경에서 사용
+STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
+
+#클라우드 플레어 기본 설정 설정값은 .env 또는 개발 문서 참조
+CLOUDFLARE_R2_BUCKET = config('CLOUDFLARE_R2_BUCKET')
+CLOUDFLARE_R2_ACCESS_KEY = config('CLOUDFLARE_R2_ACCESS_KEY')
+CLOUDFLARE_R2_SECRET_KEY = config('CLOUDFLARE_R2_SECRET_KEY')
+CLOUDFLARE_R2_BUCKET_ENDPOINT = config('CLOUDFLARE_R2_BUCKET_ENDPOINT')
+
+CLOUDFLARE_R2_BUCKET_CONFIG_OPTIONS = {
+    'bucket_name': CLOUDFLARE_R2_BUCKET,
+    'access_key': CLOUDFLARE_R2_ACCESS_KEY,
+    'secret_key': CLOUDFLARE_R2_SECRET_KEY,
+    'endpoint_url': CLOUDFLARE_R2_BUCKET_ENDPOINT,
+    'default_acl': 'public-read',
+    'signature_version': 's3v4'
+}
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
