@@ -13,20 +13,28 @@ class Association_greeting(models.Model):
         return self.name
 #협회소개 - 연혁
 
-#연혁 - 연도
-class Association_history_year(models.Model):
-    year = models.TextField(null=False, default='2026')
+#연혁 - 연도 -- 묶어야 한다라..
+
+class History_set_up(models.Model): #묶는 작업 중
+    dis_type = models.TextField(default='history', null=True)
+    title = models.TextField(default='2025', null=False)
 
     def __str__(self):
-        return self.year
-#연혁 - 연도+월+subscript sub_table
-class Association_history_month(models.Model):
-    month = models.TextField(null=False, default='2026.04')
-    content = models.TextField(null=False, default='내용')
+        return self.title
+class History_content(models.Model):
+    date = models.TextField(null=False)
+    history = models.ForeignKey(History_set_up, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return self.date
+class History_event(models.Model):
+    content = models.TextField(null=True, default='content add')
     img = models.ImageField(upload_to='history_img', null=True)
+    history_content = models.ForeignKey(History_content, on_delete=models.CASCADE)
 
     def __str__(self):
         return self.content
+
 
 #협회 소식
 class News(models.Model):
