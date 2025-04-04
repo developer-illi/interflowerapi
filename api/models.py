@@ -191,3 +191,16 @@ class Notice_content(models.Model):
 
     def __str__(self):
         return self.notice
+
+
+class Organizational_chart(models.Model):
+    position = models.CharField(max_length=50, null=False)
+    name = models.CharField(max_length=30, null=False)
+    title_img = models.ImageField(upload_to='media/Organizational')
+
+    def __str__(self):
+        return self.name
+
+class Organizational_title(models.Model):
+    title = models.TextField(default=None)
+    person = models.ForeignKey(Organizational_chart, on_delete=models.CASCADE)
