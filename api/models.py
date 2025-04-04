@@ -13,23 +13,29 @@ class Association_greeting(models.Model):
         return self.name
 #협회소개 - 연혁
 
-#연혁 - 연도 -- 묶어야 한다라..
+#front 부분의 데이터 처리 방식과 비슷하게 만듬
+#set_up > content > event 구조로 데이터 처리해서 보내야함
 
-class History_set_up(models.Model): #묶는 작업 중
+#메인 history
+class History_set_up(models.Model):
     dis_type = models.TextField(default='history', null=True)
     title = models.TextField(default='2025', null=False)
 
     def __str__(self):
         return self.title
+
+#history content -- 날짜만 관리 parent : set_up
 class History_content(models.Model):
     date = models.TextField(null=False)
     history = models.ForeignKey(History_set_up, on_delete=models.CASCADE)
 
     def __str__(self):
         return self.date
+
+#history_event -- 결과적으로 컨탠츠와 이미지관리 parent : history_content
 class History_event(models.Model):
     content = models.TextField(null=True, default='content add')
-    img = models.ImageField(upload_to='history_img', null=True)
+    img = models.ImageField(upload_to='media/history_img', null=True)
     history_content = models.ForeignKey(History_content, on_delete=models.CASCADE)
 
     def __str__(self):
@@ -73,7 +79,7 @@ class Local(models.Model):#국내전시
     title = models.CharField(max_length=252, default='국내전시')
     sub_title = models.TextField(null=True, default='글로벌 플로리스트 주요사업')
     content = models.TextField(null=True)
-    img = models.ImageField(upload_to='Local', null=True)
+    img = models.ImageField(upload_to='media/Local', null=True)
 
     def __str__(self):
         return self.title
@@ -82,7 +88,7 @@ class Local(models.Model):#국내전시
 class Local_content(models.Model):#국내전시 - sub_content
     title = models.CharField(max_length=100, null=False, default='flower')
     content = models.TextField(null=True)
-    img = models.ImageField(upload_to='Local_sub_content', null=True)
+    img = models.ImageField(upload_to='media/Local_sub_content', null=True)
     create_at = models.DateTimeField(auto_now_add=True)
     local = models.ForeignKey(Local, on_delete=models.CASCADE)
 
@@ -94,7 +100,7 @@ class Overseas(models.Model):#국외전시
     title = models.CharField(max_length=252, default='국외전시')
     sub_title = models.TextField(null=True, default='글로벌 플로리스트 주요사업')
     content = models.TextField(null=True)
-    img = models.ImageField(upload_to='Overseas', null=True)
+    img = models.ImageField(upload_to='media/Overseas', null=True)
 
     def __str__(self):
         return self.title
@@ -103,7 +109,7 @@ class Overseas(models.Model):#국외전시
 class Overseas_content(models.Model):#국외전시 - sub_content
     title = models.CharField(max_length=100, null=False, default='flower')
     content = models.TextField(null=True)
-    img = models.ImageField(upload_to='Overseas_sub_content', null=True)
+    img = models.ImageField(upload_to='media/Overseas_sub_content', null=True)
     create_at = models.DateTimeField(auto_now_add=True)
     overseas = models.ForeignKey(Overseas ,on_delete=models.CASCADE)
 
@@ -115,7 +121,7 @@ class License(models.Model):
     title = models.CharField(max_length=252, default='국외전시')
     sub_title = models.TextField(null=True, default='글로벌 플로리스트 주요사업')
     content = models.TextField(null=True)
-    img = models.ImageField(upload_to='Overseas', null=True)
+    img = models.ImageField(upload_to='media/Overseas', null=True)
 
     def __str__(self):
         return self.title
@@ -124,7 +130,7 @@ class License(models.Model):
 class License_content(models.Model):#자격증
     title = models.CharField(max_length=200, null=False, default="자격증")
     content = models.TextField(null=True, default='content')
-    img = models.ImageField(upload_to="License", null=True)
+    img = models.ImageField(upload_to="media/License", null=True)
     license_script = models.TextField(null=True, default='content')
     link = models.TextField(null=True)
 
@@ -136,7 +142,7 @@ class Contests(models.Model):
     title = models.CharField(max_length=200, null=False, default='대외활동')
     sub_title = models.TextField(null=True)
     content = models.TextField(null=True, default='content')
-    img = models.ImageField(upload_to='Contests', null=True)
+    img = models.ImageField(upload_to='media/Contests', null=True)
 
     def __str__(self):
         return self.title

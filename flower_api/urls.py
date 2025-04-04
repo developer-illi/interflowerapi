@@ -23,7 +23,8 @@ from api import views as api_view
 router = DefaultRouter()
 router.register(r'Greeting', api_view.Greeting_ViewSet)
 
+
 urlpatterns = [
     path('', include(router.urls)),
-    path('', include(router.urls))
+    path('testing_code', api_view.his_join, name='test_code')
 ]
