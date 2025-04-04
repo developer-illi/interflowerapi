@@ -75,7 +75,9 @@ class News_content(models.Model):
     order = models.IntegerField(default=0)
 
 #주요 사업
-class Local(models.Model):#국내전시
+
+#주요사업 -- 국내전시
+class Local(models.Model):
     title = models.CharField(max_length=252, default='국내전시')
     sub_title = models.TextField(null=True, default='글로벌 플로리스트 주요사업')
     content = models.TextField(null=True)
@@ -193,6 +195,7 @@ class Notice_content(models.Model):
         return self.notice
 
 
+#조직도 메인 트리
 class Organizational_chart(models.Model):
     position = models.CharField(max_length=50, null=False)
     name = models.CharField(max_length=30, null=False)
@@ -201,6 +204,10 @@ class Organizational_chart(models.Model):
     def __str__(self):
         return self.name
 
+#조직도 서브트리
 class Organizational_title(models.Model):
     title = models.TextField(default=None)
     person = models.ForeignKey(Organizational_chart, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return self.title

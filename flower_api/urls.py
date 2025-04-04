@@ -26,5 +26,10 @@ router.register(r'Greeting', api_view.Greeting_ViewSet)
 
 urlpatterns = [
     path('', include(router.urls)),
-    path('testing_code', api_view.his_join, name='test_code')
+    path('history', api_view.History_DataSet, name='history'),
+    path('organizational', api_view.Organizational_DataSet, name='organizational'),
+    path('local', api_view.Local_DataSet, name='organizational'),
+    path('overseas', api_view.Organizational_DataSet, name='overseas'),
+    path('license', api_view.Local_DataSet, name='license'),
+    path('contents', api_view.Contents_DataSet, name='content'),
 ]
