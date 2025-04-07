@@ -33,4 +33,5 @@ urlpatterns = [
     path('license', api_view.Local_DataSet, name='license'),
     path('contents', api_view.Contents_DataSet, name='content'),
     path('news', api_view.News_DataSet, name='news'),
+    path('notice', api_view.Notice_DataSet, name='notice'),
 ]

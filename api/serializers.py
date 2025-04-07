@@ -143,3 +143,15 @@ class NewsContentSetSerializer(serializers.ModelSerializer):
 #     class Meta:
 #         model = News
 #         fields = '__all__'
+
+
+class NoticeContentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Notice_content
+        fields = '__all__'
+
+class NoticeSetSerializer(serializers.ModelSerializer):
+    notice = NoticeContentSerializer(source='notice_content', many=True, read_only=True)
+    class Meta:
+        model = Notice
+        fields = '__all__'
