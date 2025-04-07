@@ -23,16 +23,19 @@ from api import views as api_view
 router = DefaultRouter()
 router.register(r'Greeting', api_view.Greeting_ViewSet)
 
-
 urlpatterns = [
     path('', include(router.urls)),
-    path('history', api_view.History_DataSet, name='history'),
-    path('organizational', api_view.Organizational_DataSet, name='organizational'),
-    path('local', api_view.Local_DataSet, name='organizational'),
-    path('overseas', api_view.Organizational_DataSet, name='overseas'),
-    path('license', api_view.Local_DataSet, name='license'),
-    path('contents', api_view.Contents_DataSet, name='content'),
-    path('news', api_view.News_DataSet, name='news'),
-    path('notice', api_view.Notice_DataSet, name='notice'),
-    path('organizational', api_view.Organizational_DataSet, name='organizational'),
+
+    # 리소스별로 구조 정리
+    path('history/', api_view.History_DataSet, name='history'),
+    path('organizational/', api_view.Organizational_DataSet, name='organizational'),
+    path('organizational_post/', api_view.create_organizational_chart, name='organizational_post'),
+    #path('organizational/<int:id>/', api_view.Organizational_Detail, name='organizational-detail'),
+
+    path('local/', api_view.Local_DataSet, name='local'),
+    path('license/', api_view.License_DataSet, name='license'),
+
+    path('contents/', api_view.Contents_DataSet, name='contents'),
+    path('news/', api_view.News_DataSet, name='news'),
+    path('notice/', api_view.Notice_DataSet, name='notice'),
 ]

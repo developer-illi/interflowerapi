@@ -7,6 +7,9 @@ from rest_framework import viewsets
 from .serializers import *
 from rest_framework.response import Response
 from rest_framework.decorators import api_view
+from rest_framework import status
+from .models import Organizational_chart
+from .serializers import OrChartSetSerializer
 
 
 class Greeting_ViewSet(viewsets.ModelViewSet):
@@ -69,8 +72,19 @@ def Notice_DataSet(request):
     return Response(serializers.data)
 
 
+#조직도
 @api_view(['GET'])
 def Organizational_DataSet(request):
     content = Organizational_chart.objects.all()
     serializers = OrChartSetSerializer(content, many=True)
     return Response(serializers.data)
+
+@api_view(['POST'])
+def create_organizational_chart(request):
+    print(request.POST)
+    serializer = OrChartSetSerializer(data=request.data)
+
+    if serializer.is_valid():
+        serializer.save()
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
