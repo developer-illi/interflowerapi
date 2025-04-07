@@ -49,3 +49,9 @@ def Contents_DataSet(request):
     content = Contests.objects.all()
     serializers = ContestsContentSerializer(content, many=True)
     return Response(serializers.data)
+
+@api_view(['GET'])
+def News_DataSet(request):
+    content = News.objects.all()
+    serializers = NewsContentSetSerializer(content, many=True)
+    return Response(serializers.data)

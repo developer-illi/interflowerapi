@@ -32,4 +32,5 @@ urlpatterns = [
     path('overseas', api_view.Organizational_DataSet, name='overseas'),
     path('license', api_view.Local_DataSet, name='license'),
     path('contents', api_view.Contents_DataSet, name='content'),
+    path('news', api_view.News_DataSet, name='news'),
 ]

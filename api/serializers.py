@@ -113,3 +113,33 @@ class ContestsSetSerializer(serializers.ModelSerializer):
     class Meta:
         model = Contests
         fields = '__all__'
+
+
+#나중에 참고 자료
+# 협회소식
+
+#협회소식 content
+class NewsContentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = News_content
+        fields = ['block_type', 'content', 'order']
+
+
+#협회소식 메인 Data_Set
+class NewsContentSetSerializer(serializers.ModelSerializer):
+    blocks = NewsContentSerializer(many=True, read_only=True)  # blocks는 related_name
+
+    class Meta:
+        model = News
+        fields = ['title', 'type', 'content', 'created_at', 'category', 'blocks']
+
+# class NewsContentSetSerializer(serializers.ModelSerializer):
+#     class Meta:
+#         model = News_content
+#         fields = '__all__'
+#
+# class NewsSetSerializer(serializers.ModelSerializer):
+#     contents = NewsContentSetSerializer(source='News_content', many=True, read_only=True)
+#     class Meta:
+#         model = News
+#         fields = '__all__'
