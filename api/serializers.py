@@ -155,3 +155,15 @@ class NoticeSetSerializer(serializers.ModelSerializer):
     class Meta:
         model = Notice
         fields = '__all__'
+
+
+class OrTitleSetSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Organizational_title
+        fields = '__all__'
+
+class OrChartSetSerializer(serializers.ModelSerializer):
+    organizational = OrTitleSetSerializer(source='organizational_title_set', many=True, read_only=True)
+    class Meta:
+        model = Organizational_chart
+        fields = '__all__'

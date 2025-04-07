@@ -67,3 +67,10 @@ def Notice_DataSet(request):
     content = Notice.objects.all()
     serializers = NoticeSetSerializer(content, many=True)
     return Response(serializers.data)
+
+
+@api_view(['GET'])
+def Organizational_DataSet(request):
+    content = Organizational_chart.objects.all()
+    serializers = OrChartSetSerializer(content, many=True)
+    return Response(serializers.data)
