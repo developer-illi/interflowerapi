@@ -82,28 +82,28 @@ WSGI_APPLICATION = 'flower_api.wsgi.application'
 #      -- DB환경 세팅시 운용환경 or 테스트환경
 #          사용하지 않는 분야는 주석 처리 할것
 
-#실 운용 환경
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': config('DATABASE_NAME'),
-        'USER': config('DATABASE_USER'),
-        'PASSWORD': config('DATABASE_PASSWORD'),
-        'HOST': config('DATABASE_HOST'),
-        'PORT': config('DATABASE_PORT'),
-    }
-}
-# #테스트 환경
+# #실 운용 환경
 # DATABASES = {
 #     'default': {
 #         'ENGINE': 'django.db.backends.postgresql',
-#         'NAME': 'flower_teest',
-#         'USER': 'postgres',
-#         'PASSWORD': '1235gg',
-#         'HOST': 'localhost',
-#         'PORT': '5432',
+#         'NAME': config('DATABASE_NAME'),
+#         'USER': config('DATABASE_USER'),
+#         'PASSWORD': config('DATABASE_PASSWORD'),
+#         'HOST': config('DATABASE_HOST'),
+#         'PORT': config('DATABASE_PORT'),
 #     }
 # }
+#테스트 환경
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'flower_teest',
+        'USER': 'postgres',
+        'PASSWORD': '1235gg',
+        'HOST': 'localhost',
+        'PORT': '5432',
+    }
+}
 
 # Password validation
 # https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators

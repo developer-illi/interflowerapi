@@ -14,6 +14,14 @@ class HistoryEventSerializer(serializers.ModelSerializer):
     class Meta:
         model = History_event
         fields = '__all__'
+class History_content_Serializer(serializers.ModelSerializer):
+    class Meta:
+        model = History_content
+        fields = '__all__'
+class History_Set_Serializer(serializers.ModelSerializer):
+    class Meta:
+        model = History_set_up
+        fields = '__all__'
 class HistoryContentSerializer(serializers.ModelSerializer):
     event = HistoryEventSerializer(source='history_event_set', many=True, read_only=True)
     class Meta:
@@ -28,13 +36,18 @@ class HistorySetUpSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 #조직도
-class Organizational_titleSetSerializer(serializers.ModelSerializer):
+class or_chart_serializer(serializers.ModelSerializer):
     class Meta:
-         model = Organizational_title
-         fields = '__all__'
-class OrganizationalSetSerializer(serializers.ModelSerializer):
-    contents = Organizational_titleSetSerializer(source='Organizational_title', many=True, read_only=True)
+        model = Organizational_chart
+        fields = '__all__'
 
+class OrTitleSetSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Organizational_title
+        fields = '__all__'
+
+class OrChartSetSerializer(serializers.ModelSerializer):
+    organizational = OrTitleSetSerializer(source='organizational_title_set', many=True)
     class Meta:
         model = Organizational_chart
         fields = '__all__'
@@ -49,9 +62,12 @@ class Local_ContentSetSerializer(serializers.ModelSerializer):
 
 
 #국내전시 메인 데이터셋
+class Local_Set_Serializer(serializers.ModelSerializer):
+    class Meta:
+        model = Local
+        fields = '__all__'
 class LocalSetSerializer(serializers.ModelSerializer):
     contents = Local_ContentSetSerializer(source='Local_content', many=True, read_only=True)
-
     class Meta:
         model = Local
         fields = '__all__'
@@ -67,6 +83,10 @@ class OverseasContentSerializer(serializers.ModelSerializer):
 
 
 #국외전시 메인 데이터셋
+class Overseas_Set_Serializer(serializers.ModelSerializer):
+    class Meta:
+        model = Overseas
+        fields = '__all__'
 class OverseasSetSerializer(serializers.ModelSerializer):
     contents = OverseasContentSerializer(source='Overseas_content')
 
@@ -84,12 +104,15 @@ class LicenseContentSetSerializer(serializers.ModelSerializer):
 
 
 #자격증 메인 데이터셋
+class License_Set_Serializer(serializers.ModelSerializer):
+    class Meta:
+        model = License
+        fields = '__all__'
 class LicenseSetSerializer(serializers.ModelSerializer):
     contents = LicenseContentSetSerializer(source='License_content', many=True, read_only=True)
     class Meta:
         model = License
         fields = '__all__'
-
 
 #대외활동
 
@@ -101,6 +124,10 @@ class ContestsBulletinboardSerializer(serializers.ModelSerializer):
 
 
 #대외활동 컨탠츠
+class Content_Content_Serializer(serializers.ModelSerializer):
+    class Meta:
+        model = Contests_content
+        fields = '__all__'
 class ContestsContentSerializer(serializers.ModelSerializer):
     contents = ContestsBulletinboardSerializer(source='Contests_Block', many=True, read_only=True)
     class Meta:
@@ -108,6 +135,10 @@ class ContestsContentSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 #대외활동 메인 데이터셋
+class Content_Set_Serializer(serializers.ModelSerializer):
+    class Meta:
+        model = Contests
+        fields = '__all__'
 class ContestsSetSerializer(serializers.ModelSerializer):
     contents = ContestsContentSerializer(source='Content_content', many=True, read_only=True)
     class Meta:
@@ -122,34 +153,29 @@ class ContestsSetSerializer(serializers.ModelSerializer):
 class NewsContentSerializer(serializers.ModelSerializer):
     class Meta:
         model = News_content
-        fields = ['block_type', 'content', 'order']
+        fields = '__all__'
 
 
 #협회소식 메인 Data_Set
+class News_Set_Serializer(serializers.ModelSerializer):
+    class Meta:
+        model = News
+        fields = '__all__'
 class NewsContentSetSerializer(serializers.ModelSerializer):
-    blocks = NewsContentSerializer(many=True, read_only=True)  # blocks는 related_name
+    blocks = NewsContentSerializer(source='News_content', many=True, read_only=True)  # blocks는 related_name
 
     class Meta:
         model = News
-        fields = ['title', 'type', 'content', 'created_at', 'category', 'blocks']
-
-# class NewsContentSetSerializer(serializers.ModelSerializer):
-#     class Meta:
-#         model = News_content
-#         fields = '__all__'
-#
-# class NewsSetSerializer(serializers.ModelSerializer):
-#     contents = NewsContentSetSerializer(source='News_content', many=True, read_only=True)
-#     class Meta:
-#         model = News
-#         fields = '__all__'
-
+        fields = '__all__'
 
 class NoticeContentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Notice_content
         fields = '__all__'
-
+class Notice_Set_Serializer(serializers.ModelSerializer):
+    class Meta:
+        model = Notice
+        fields = '__all__'
 class NoticeSetSerializer(serializers.ModelSerializer):
     notice = NoticeContentSerializer(source='notice_content', many=True, read_only=True)
     class Meta:
@@ -157,13 +183,3 @@ class NoticeSetSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
-class OrTitleSetSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Organizational_title
-        fields = '__all__'
-
-class OrChartSetSerializer(serializers.ModelSerializer):
-    organizational = OrTitleSetSerializer(source='organizational_title_set', many=True, read_only=True)
-    class Meta:
-        model = Organizational_chart
-        fields = '__all__'

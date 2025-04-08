@@ -1,3 +1,5 @@
+import json
+
 from django.shortcuts import render
 
 # Create your views here.
@@ -10,6 +12,7 @@ from rest_framework.decorators import api_view
 from rest_framework import status
 from .models import Organizational_chart
 from .serializers import OrChartSetSerializer
+import json
 
 
 class Greeting_ViewSet(viewsets.ModelViewSet):
@@ -23,11 +26,13 @@ def History_DataSet(request):
     serializer = HistorySetUpSerializer(histories, many=True)
     return Response(serializer.data)
 
-@api_view(['GET'])
-def Organizational_DataSet(request):
-    organizational = Organizational_chart.objects.all()
-    serializer = Organizational_titleSetSerializer(organizational, many=True)
-    return Response(serializer.data)
+@api_view(['POST'])
+def create_history(request):
+    serializers = History_DataSet(request.data)
+    if serializers.is_valid():
+        serializers.save()
+        return Response(serializers.data, status=status.HTTP_201_CREATED)
+    return Response(serializers.errors, status=status.HTTP_400_BAD_REQUEST)
 
 #국내전시
 @api_view(['GET'])
@@ -75,16 +80,21 @@ def Notice_DataSet(request):
 #조직도
 @api_view(['GET'])
 def Organizational_DataSet(request):
-    content = Organizational_chart.objects.all()
-    serializers = OrChartSetSerializer(content, many=True)
-    return Response(serializers.data)
+    organizational = Organizational_chart.objects.all()
+    serializer = OrChartSetSerializer(organizational, many=True)
+    return Response(serializer.data)
+
+
 
 @api_view(['POST'])
 def create_organizational_chart(request):
-    print(request.POST)
-    serializer = OrChartSetSerializer(data=request.data)
-
-    if serializer.is_valid():
-        serializer.save()
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
+    # request.data를 바로 사용
+    serializer = or_chart_serializer(data=request.data)
+    try:
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+    except Exception as e:
+        print(e)
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
