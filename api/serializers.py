@@ -8,24 +8,36 @@ class Greeting_Serializer(serializers.ModelSerializer):
     class Meta:
         model = Association_greeting
         fields = '__all__'
-
+class Greeting_name_Serializer(serializers.ModelSerializer):
+    class Meta:
+        model = Greeting_user
+        fields = '__all__'
 #연혁
+
+class Greeting_Dataset(serializers.ModelSerializer):
+    writer = Greeting_name_Serializer(source='greeting_user', many=True, read_only=True)
+    class Meta:
+        model = Association_greeting
+        fields = '__all__'
+
 class HistoryEventSerializer(serializers.ModelSerializer):
     class Meta:
         model = History_event
         fields = '__all__'
+
 class History_content_Serializer(serializers.ModelSerializer):
     class Meta:
         model = History_content
-        fields = '__all__'
-class History_Set_Serializer(serializers.ModelSerializer):
-    class Meta:
-        model = History_set_up
         fields = '__all__'
 class HistoryContentSerializer(serializers.ModelSerializer):
     event = HistoryEventSerializer(source='history_event_set', many=True, read_only=True)
     class Meta:
         model = History_content
+        fields = '__all__'
+
+class History_Set_Serializer(serializers.ModelSerializer):
+    class Meta:
+        model = History_set_up
         fields = '__all__'
 
 class HistorySetUpSerializer(serializers.ModelSerializer):
@@ -150,7 +162,7 @@ class ContestsSetSerializer(serializers.ModelSerializer):
 # 협회소식
 
 #협회소식 content
-class NewsContentSerializer(serializers.ModelSerializer):
+class NewsContent_Set_Serializer(serializers.ModelSerializer):
     class Meta:
         model = News_content
         fields = '__all__'
@@ -162,7 +174,7 @@ class News_Set_Serializer(serializers.ModelSerializer):
         model = News
         fields = '__all__'
 class NewsContentSetSerializer(serializers.ModelSerializer):
-    blocks = NewsContentSerializer(source='News_content', many=True, read_only=True)  # blocks는 related_name
+    blocks = NewsContent_Set_Serializer(source='News_content', many=True, read_only=True)  # blocks는 related_name
 
     class Meta:
         model = News

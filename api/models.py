@@ -7,7 +7,15 @@ from datetime import timedelta
 class Association_greeting(models.Model):
     title = models.TextField(null=True, default='제목을 입력해주세요')
     content = models.TextField(null=True, default='내용을 입력해주세요')
-    name = models.CharField(max_length=10, default='이름을 입력해주세요')
+
+    def __str__(self):
+        return self.title
+
+class Greeting_user(models.Model):
+    association = models.TextField(null=True, default='국제꽃예술인협회')
+    position = models.TextField(null=True, default='이 사 장')
+    name = models.TextField(null=True, default='김 세 은')
+    greeting = models.ForeignKey(Association_greeting, on_delete=models.CASCADE,null=True,related_name='greeting_user')
 
     def __str__(self):
         return self.name
@@ -19,7 +27,7 @@ class Association_greeting(models.Model):
 #메인 history
 class History_set_up(models.Model):
     dis_type = models.TextField(default='history', null=True)
-    title = models.TextField(default='2025', null=False)
+    title = models.TextField(default='2025', null=False, unique=True)
 
     def __str__(self):
         return self.title
