@@ -207,6 +207,7 @@ class Notice_content(models.Model):
 class Organizational_chart(models.Model):
     position = models.CharField(max_length=50, null=False)
     name = models.CharField(max_length=30, null=False)
+    sorting = models.IntegerField(default=3)
     title_img = models.ImageField(upload_to='media/Organizational')
 
     def __str__(self):
