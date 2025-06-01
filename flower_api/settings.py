@@ -29,7 +29,9 @@ SECRET_KEY = config('SECRET_KEY')
 DEBUG = config('DJANGO_DEBUG', default=False, cast=bool)
 
 ALLOWED_HOSTS = ['*']
-
+CSRF_TRUSTED_ORIGINS = [
+    'https://port-0-interflowerapi-m8majoul75b3ab86.sel4.cloudtype.app',
+]
 
 # Application definition
 
@@ -142,6 +144,7 @@ USE_TZ = True
 STATIC_URL = 'static/'
 #실 운용시 collectstatic 명령어로 생성
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+
 
 #테스트 환경에서 사용
 STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
