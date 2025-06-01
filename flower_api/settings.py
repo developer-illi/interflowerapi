@@ -163,6 +163,20 @@ CLOUDFLARE_R2_BUCKET_CONFIG_OPTIONS = {
     'default_acl': 'public-read',
     'signature_version': 's3v4'
 }
+# Cloudflare R2 를 Django 파일 저장소로 사용 설정
+DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
+
+AWS_ACCESS_KEY_ID = CLOUDFLARE_R2_ACCESS_KEY
+AWS_SECRET_ACCESS_KEY = CLOUDFLARE_R2_SECRET_KEY
+AWS_STORAGE_BUCKET_NAME = CLOUDFLARE_R2_BUCKET
+AWS_S3_ENDPOINT_URL = CLOUDFLARE_R2_BUCKET_ENDPOINT
+
+# 퍼블릭 읽기 허용
+AWS_DEFAULT_ACL = 'public-read'
+
+# 파일 URL 구성
+AWS_S3_CUSTOM_DOMAIN = CLOUDFLARE_R2_BUCKET_ENDPOINT.replace('https://', '')
+MEDIA_URL = f'https://{AWS_S3_CUSTOM_DOMAIN}/'
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
