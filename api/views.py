@@ -10,6 +10,7 @@ from .serializers import *
 from rest_framework.response import Response
 from rest_framework.decorators import api_view
 from rest_framework import status
+from django.db.models import Q
 from .models import Organizational_chart
 from .serializers import OrChartSetSerializer
 import json
@@ -62,18 +63,24 @@ def create_his_event(request):
 #국내전시
 @api_view(['GET'])
 def Local_DataSet(request):
-    local = Local.objects.all()
-    serializers = Local_ContentSetSerializer(local, many=True)
+    get_data_type = request.GET.get('type')
+    print(get_data_type)
+    if get_data_type in ['domestic']:
+        data_set = Local.objects.all()
+        serializers = LocalSetSerializer(data_set, many=True)  # ✅ 수정
+    else:
+        data_set = Overseas.objects.all()
+        serializers = OverseasSetSerializer(data_set, many=True)
     return Response(serializers.data)
 
 #국내 전시 메인 데이터셋 생성
-@api_view(['POST'])
-def create_local(request):
-    serializers = Local_Set_Serializer(request.data)
-    if serializers.is_valid():
-        serializers.save()
-        return Response(serializers.data, status=status.HTTP_201_CREATED)
-    return Response(serializers.erros, status=status.HTTP_400_BAD_REQUEST)
+# @api_view(['POST'])
+# def create_local(request):
+#     serializers = Local_Set_Serializer(request.data)
+#     if serializers.is_valid():
+#         serializers.save()
+#         return Response(serializers.data, status=status.HTTP_201_CREATED)
+#     return Response(serializers.erros, status=status.HTTP_400_BAD_REQUEST)
 
 #국내 전시 컨탠츠 생성
 @api_view(['POST'])
@@ -115,8 +122,9 @@ def create_overseas_content(request):
 @api_view(['GET'])
 def License_DataSet(request):
     license = License.objects.all()
-    serializers = LicenseContentSetSerializer(license, many=True)
+    serializers = LicenseSetSerializer(license, many=True)
     return Response(serializers.data)
+
 #자격증 메인 데이터셋 생성
 @api_view(['POST'])
 def create_license(request):
@@ -137,18 +145,18 @@ def create_license_content(request):
 #주요사업?
 @api_view(['GET'])
 def Contents_DataSet(request):
-    content = Contests.objects.all()
-    serializers = ContestsContentSerializer(content, many=True)
+    content = Contests.objects.all().order_by('id')
+    serializers = ContestsSerializer(content, many=True)
     return Response(serializers.data)
 
+@api_view(['GET'])
+def Content_detail_data(request, id):
+    detail_data = Contests_content.objects.get(id=id)
+    serializers = ContestsContentSerializer(detail_data)
+    return Response(serializers.data)
+
+
 #주요사업 메인 데이터셋 생성
-@api_view(['POST'])
-def create_content(request):
-    serializers = Content_Set_Serializer(request.data)
-    if serializers.is_valid():
-        serializers.save()
-        return Response(serializers.data, status=status.HTTP_201_CREATED)
-    return Response(serializers.data, status=status.HTTP_400_BAD_REQUEST)
 #주요사업 컨텐츠 생성
 @api_view(['POST'])
 def create_content_content(request):
@@ -161,9 +169,23 @@ def create_content_content(request):
 #협회소식
 @api_view(['GET'])
 def News_DataSet(request):
-    content = News.objects.all()
+    get_type = request.GET.get('type')
+    if get_type in ['report', 'issues']:
+        type_id = get_type
+        content = News.objects.filter(type=type_id)
+    else:
+        content = News.objects.all()
     serializers = NewsContentSetSerializer(content, many=True)
     return Response(serializers.data)
+
+@api_view(['GET'])
+def News_data_id(request, id):
+    if id is not None:
+        head_data = News.objects.get(id=id)
+        content = News_content.objects.filter(news=head_data)
+    serializers = News_id_data_serializer(content, many=True)
+    return Response(serializers.data)
+
 
 #협회소식 메인 데이터셋 생성
 @api_view(['POST'])
@@ -173,6 +195,7 @@ def create_news(request):
         serializers.save()
         return Response(serializers.data, status=status.HTTP_201_CREATED)
     return Response(serializers.data, status=status.HTTP_400_BAD_REQUEST)
+
 #협회소식 content 생성
 @api_view(['POST'])
 def create_news_content(request):
@@ -185,9 +208,28 @@ def create_news_content(request):
 #공지사항
 @api_view(['GET'])
 def Notice_DataSet(request):
-    content = Notice.objects.all()
+    search_keyword = request.GET.get('search')
+    if search_keyword:
+        # title 또는 content 에서 검색
+        content = Notice.objects.filter(
+            Q(title__icontains=search_keyword)
+        ).order_by('-id')  # 필요시 정렬
+    else:
+        content = Notice.objects.all().order_by('-id')
+
     serializers = NoticeSetSerializer(content, many=True)
     return Response(serializers.data)
+@api_view(['GET'])
+def Notice_detail(request, id):
+    try:
+        notice = Notice.objects.get(id=id)
+        set_up_data = notice.notice_content  # OneToOneField 이므로 역참조 사용
+        serializer = NoticeContentSerializer(set_up_data)
+        return Response(serializer.data)
+    except Notice.DoesNotExist:
+        return Response({"error": "Notice not found"}, status=404)
+    except Notice_content.DoesNotExist:
+        return Response({"error": "Notice content not found"}, status=404)
 
 #공지사항 메인 데이터셋 생성
 @api_view(['POST'])
@@ -197,6 +239,7 @@ def create_notice(request):
         serializers.save()
         return Response(serializers.data, status=status.HTTP_201_CREATED)
     return Response(serializers.data, status=status.HTTP_400_BAD_REQUEST)
+
 #공지사항 content 생성
 @api_view(['POST'])
 def create_notice_content(request):
@@ -208,12 +251,21 @@ def create_notice_content(request):
 
 #조직도
 @api_view(['GET'])
-def Organizational_DataSet(request):
-    organizational = Organizational_chart.objects.all()
-    serializer = OrChartSetSerializer(organizational, many=True)
-    return Response(serializer.data)
+def organization_all_data(request):
+    president_qs = ORGANIZATION_PRESIDENT.objects.all()
+    vice_president_qs = ORGANIZATION_VICE_PRESIDENT.objects.all()
+    director_qs = ORGANIZATION_DIRECTOR.objects.all()
 
-#조직도 메인 데이터셋 생성
+    president_data = OrganizationPresidentSerializer(president_qs, many=True).data
+    vice_president_data = Organization_vicePresidentSerializer(vice_president_qs, many=True).data
+    director_data = Organization_directorerializer(director_qs, many=True).data
+
+    return Response({
+        "president": president_data,
+        "vicePresidents": vice_president_data,
+        "directors": director_data,
+    })
+
 @api_view(['POST'])
 def create_organizational_chart(request):
     serializer = or_chart_serializer(data=request.data)

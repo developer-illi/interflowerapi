@@ -1,3 +1,60 @@
+# admin.py
 from django.contrib import admin
+from .models import (
+    Association_greeting,
+    Greeting_user,
+    History_set_up,
+    History_content,
+    History_event,
+    News,
+    News_content,
+    Local,
+    Local_content,
+    Overseas,
+    Overseas_content,
+    License,
+    License_content,
+    Contests,
+    Contests_content,
+    Contents_gallery,
+    Content_florist,
+    Notice,
+    Notice_content,
+    ORGANIZATION_PRESIDENT,
+    ORGANIZATION_PRESIDENT_PROFILE,
+    ORGANIZATION_VICE_PRESIDENT,
+    ORGANIZATION_VICE_PRESIDENT_PROFILE,
+    ORGANIZATION_DIRECTOR,
+    ORGANIZATION_DIRECTOR_PROFILE,
+    Organizational_chart,
+    Organizational_title,
+)
 
-# Register your models here.
+# 전부 등록
+admin.site.register(Association_greeting)
+admin.site.register(Greeting_user)
+admin.site.register(History_set_up)
+admin.site.register(History_content)
+admin.site.register(History_event)
+admin.site.register(News)
+admin.site.register(News_content)
+admin.site.register(Local)
+admin.site.register(Local_content)
+admin.site.register(Overseas)
+admin.site.register(Overseas_content)
+admin.site.register(License)
+admin.site.register(License_content)
+admin.site.register(Contests)
+admin.site.register(Contests_content)
+admin.site.register(Contents_gallery)
+admin.site.register(Content_florist)
+admin.site.register(Notice)
+admin.site.register(Notice_content)
+admin.site.register(ORGANIZATION_PRESIDENT)
+admin.site.register(ORGANIZATION_PRESIDENT_PROFILE)
+admin.site.register(ORGANIZATION_VICE_PRESIDENT)
+admin.site.register(ORGANIZATION_VICE_PRESIDENT_PROFILE)
+admin.site.register(ORGANIZATION_DIRECTOR)
+admin.site.register(ORGANIZATION_DIRECTOR_PROFILE)
+admin.site.register(Organizational_chart)
+admin.site.register(Organizational_title)
