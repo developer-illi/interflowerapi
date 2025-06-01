@@ -28,7 +28,7 @@ def Greeting_DataSet(request):
 
 @api_view(['GET'])
 def History_DataSet(request):
-    histories = History_set_up.objects.all()
+    histories = History_set_up.objects.all().order_by('-id')
     serializer = HistorySetUpSerializer(histories, many=True)
     return Response(serializer.data)
 
