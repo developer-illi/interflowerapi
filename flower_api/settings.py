@@ -18,12 +18,11 @@ from django.template.defaultfilters import default
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-#SECRET_KEY = 'django-insecure-&abm$l#-=afqwc%wlwg0lm3loelni%%ob0rjxsz8ty&(dbv-q9'
+# SECRET_KEY = 'django-insecure-&abm$l#-=afqwc%wlwg0lm3loelni%%ob0rjxsz8ty&(dbv-q9'
 SECRET_KEY = config('SECRET_KEY')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = config('DJANGO_DEBUG', default=False, cast=bool)
@@ -44,7 +43,8 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'rest_framework',
     'commands',
-    'api'
+    'api',
+    'storages',
 ]
 
 MIDDLEWARE = [
@@ -77,7 +77,6 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'flower_api.wsgi.application'
 
-
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
@@ -95,7 +94,7 @@ DATABASES = {
         'PORT': config('DATABASE_PORT'),
     }
 }
-#테스트 환경
+# 테스트 환경
 # DATABASES = {
 #     'default': {
 #         'ENGINE': 'django.db.backends.postgresql',
@@ -125,7 +124,6 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-
 # Internationalization
 # https://docs.djangoproject.com/en/5.1/topics/i18n/
 
@@ -137,19 +135,17 @@ USE_I18N = True
 
 USE_TZ = True
 
-
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.1/howto/static-files/
 
 STATIC_URL = 'static/'
-#실 운용시 collectstatic 명령어로 생성
+# 실 운용시 collectstatic 명령어로 생성
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
-
-#테스트 환경에서 사용
+# 테스트 환경에서 사용
 STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
 
-#클라우드 플레어 기본 설정 설정값은 .env 또는 개발 문서 참조
+# 클라우드 플레어 기본 설정 설정값은 .env 또는 개발 문서 참조
 CLOUDFLARE_R2_BUCKET = config('CLOUDFLARE_R2_BUCKET')
 CLOUDFLARE_R2_ACCESS_KEY = config('CLOUDFLARE_R2_ACCESS_KEY')
 CLOUDFLARE_R2_SECRET_KEY = config('CLOUDFLARE_R2_SECRET_KEY')
