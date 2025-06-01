@@ -176,7 +176,7 @@ AWS_DEFAULT_ACL = 'public-read'
 
 # 파일 URL 구성
 AWS_S3_CUSTOM_DOMAIN = CLOUDFLARE_R2_BUCKET_ENDPOINT.replace('https://', '')
-MEDIA_URL = f'https://{AWS_S3_CUSTOM_DOMAIN}/'
+MEDIA_URL = 'https://pub-00c7810e8aff4d90ad376bc7bf8481f0.r2.dev/'
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
