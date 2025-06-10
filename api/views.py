@@ -67,7 +67,7 @@ def Local_DataSet(request):
     print(get_data_type)
     if get_data_type in ['domestic']:
         data_set = Local.objects.all()
-        serializers = LocalSetSerializer(data_set, many=True)  # ✅ 수정
+        serializers = LocalSetSerializer(data_set, many=True)
     else:
         data_set = Overseas.objects.all()
         serializers = OverseasSetSerializer(data_set, many=True)

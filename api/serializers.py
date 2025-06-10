@@ -122,7 +122,7 @@ class LocalSetSerializer(serializers.ModelSerializer):
         model = Local
         fields = '__all__'
     def get_mainImageList(self, obj):
-        return list(obj.local_mainImg.values_list('image', flat=True))
+        return [img.image.url for img in obj.local_mainImg.all()]
     def get_galleryList(self, obj):
         # mainImageList 값과 동일하게 반환
         return Local_ContentSetSerializer(obj.local_mainImg.all(), many=True).data
