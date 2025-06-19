@@ -284,7 +284,6 @@ def activitiesAdd(request):
 
 @api_view(['POST'])
 def acticontentAdd(request, id):
-    print(id)
     main_data = Contests.objects.get(id=id)
     title = request.POST.get('title')
     date = request.POST.get('date')
