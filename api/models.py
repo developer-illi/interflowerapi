@@ -165,7 +165,7 @@ class Contests_content(models.Model):
     contests = models.ForeignKey(Contests, related_name='contest_title', on_delete=models.CASCADE)
 
     def __str__(self):
-        return self.mainImage
+        return self.title
 
 class Contents_gallery(models.Model):
     title = models.CharField(max_length=50, null=True,default=None)
