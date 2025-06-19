@@ -174,7 +174,7 @@ class Contents_gallery(models.Model):
     image = models.ImageField(upload_to='media/content', null=True, default='/media/defalut.png', blank=True)
     target_content = models.ForeignKey(Contests, related_name='content_gallery', on_delete=models.CASCADE)
     def __str__(self):
-        return self.image
+        return self.title
 
 #대외 활동 진행한 플로리스트 이름
 class Content_florist(models.Model):
