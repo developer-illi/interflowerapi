@@ -46,9 +46,12 @@ INSTALLED_APPS = [
     'api',
     'storages',
     'helpers',
+    'corsheaders'
 ]
 
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',  # 이 줄을 가장 위로 두는 것이 안전
+    'django.middleware.common.CommonMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -58,6 +61,10 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
+CORS_ALLOW_ALL_ORIGINS = True
+# CORS_ALLOWED_ORIGINS = [
+#     "http://localhost:3000",  # Next.js dev 서버 주소
+# ]
 ROOT_URLCONF = 'flower_api.urls'
 
 TEMPLATES = [
@@ -143,6 +150,9 @@ STATIC_URL = 'static/'
 # 실 운용시 collectstatic 명령어로 생성
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
+# MEDIA_URL = '/media/'
+# MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
 # 테스트 환경에서 사용
 STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
 
@@ -160,7 +170,7 @@ CLOUDFLARE_R2_BUCKET_CONFIG_OPTIONS = {
     'default_acl': 'public-read',
     'signature_version': 's3v4'
 }
-# Cloudflare R2 를 Django 파일 저장소로 사용 설정
+# # Cloudflare R2 를 Django 파일 저장소로 사용 설정
 STORAGES = {
     "default": {
         "BACKEND": "helpers.cloudflare.storages.MediaStorage",

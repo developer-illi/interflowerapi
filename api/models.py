@@ -88,7 +88,7 @@ class News_content(models.Model):
 #주요사업 -- 국내전시
 class Local(models.Model):
     title = models.CharField(max_length=252, default='국내전시')
-    sub_title = models.TextField(null=True, default='글로벌 플로리스트 주요사업')
+    subTitle = models.TextField(null=True, default='글로벌 플로리스트 주요사업')
     content = models.TextField(null=True)
     headerImage = models.ImageField(upload_to='media/Local', null=True, blank=True)
 
@@ -166,6 +166,7 @@ class Contests_content(models.Model):
 
     def __str__(self):
         return self.mainImage
+
 class Contents_gallery(models.Model):
     title = models.CharField(max_length=50, null=True,default=None)
     date = models.DateTimeField(auto_now=True)

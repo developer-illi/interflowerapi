@@ -1,3 +1,4 @@
+import datetime
 import json
 
 from django.shortcuts import render
@@ -7,10 +8,18 @@ from django.shortcuts import render
 
 from rest_framework import viewsets
 from .serializers import *
+from django.http import HttpResponse
+from rest_framework.exceptions import NotFound
 from rest_framework.response import Response
 from rest_framework.decorators import api_view
 from rest_framework import status
 from django.db.models import Q
+from django.conf import settings
+from django.core.files.base import ContentFile
+import os
+import uuid
+from django.utils import timezone
+from django.core.files.storage import default_storage
 from .models import Organizational_chart
 from .serializers import OrChartSetSerializer
 import json
@@ -53,6 +62,55 @@ def create_his_content(request):
     return Response(serializers.errors, status=status.HTTP_400_BAD_REQUEST)
 
 @api_view(['POST'])
+def history_add(request):
+    year = request.POST.get('year')
+    modal = History_set_up.objects.create(dis_type='history', title=year)
+    modal.save()
+
+    return Response(status=status.HTTP_201_CREATED)
+
+@api_view(['POST'])
+def history_event_add(request, id):
+    try:
+        # 1. 메인 연혁 객체 가져오기
+        main_data = History_set_up.objects.get(id=id)
+
+        # 2. 날짜 구성
+        month = request.POST.get('month')
+        date_str = f"{main_data.title}.{month}"
+
+        # 3. 텍스트 내용
+        content_text = request.POST.get('text')
+
+        # 4. 이미지 처리 (이름 변경)
+        image_file = request.FILES.get('image')
+        if image_file:
+            ext = os.path.splitext(image_file.name)[1]  # 확장자 유지
+            new_filename = f"{uuid.uuid4().hex}{ext}"
+            image_file.name = new_filename  # 이미지 이름 변경
+
+        # 5. History_content 생성
+        history_content = History_content.objects.create(
+            date=date_str,
+            history=main_data
+        )
+
+        # 6. History_event 생성
+        History_event.objects.create(
+            content=content_text,
+            img=image_file,
+            history_content=history_content
+        )
+
+        return Response(status=status.HTTP_201_CREATED)
+
+    except History_set_up.DoesNotExist:
+        return Response({"error": "해당 ID의 연혁이 존재하지 않습니다."}, status=status.HTTP_404_NOT_FOUND)
+    except Exception as e:
+        return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(['POST'])
 def create_his_event(request):
     serializers = HistoryEventSerializer(request.data)
     if serializers.is_valid():
@@ -60,11 +118,41 @@ def create_his_event(request):
         return Response(serializers.data, status=status.HTTP_201_CREATED)
     return Response(serializers.errors, status=status.HTTP_400_BAD_REQUEST)
 
+@api_view(['POST'])
+def arter_his_event(request, id):
+    try:
+        ori_content = History_event.objects.get(id=id)
+    except History_event.DoesNotExist:
+        raise NotFound(detail="해당 이벤트가 존재하지 않습니다.")
+
+    content = request.data.get('content')
+    image = request.FILES.get('image')  # ← 이미지 파일은 여기서 받아야 함
+
+    if content:
+        ori_content.content = content
+    if image:
+        ori_content.img = image  # History_event 모델에서 img 필드가 ImageField 여야 합니다.
+
+    ori_content.save()
+
+    serializer = HistoryEventSerializer(ori_content)
+    return Response(serializer.data, status=status.HTTP_200_OK)
+
+@api_view(['POST'])
+def del_his_event(request, id):
+    try:
+        ori_content = History_event.objects.get(id=id)
+    except History_event.DoesNotExist:
+        raise NotFound(detail="해당 이벤트가 존재하지 않습니다.")
+
+    ori_content.delete()
+    serializer = HistoryEventSerializer(ori_content)
+    return Response(serializer.data, status=status.HTTP_200_OK)
+
 #국내전시
 @api_view(['GET'])
 def Local_DataSet(request):
     get_data_type = request.GET.get('type')
-    print(get_data_type)
     if get_data_type in ['domestic']:
         data_set = Local.objects.all()
         serializers = LocalSetSerializer(data_set, many=True)
@@ -73,14 +161,96 @@ def Local_DataSet(request):
         serializers = OverseasSetSerializer(data_set, many=True)
     return Response(serializers.data)
 
-#국내 전시 메인 데이터셋 생성
-# @api_view(['POST'])
-# def create_local(request):
-#     serializers = Local_Set_Serializer(request.data)
-#     if serializers.is_valid():
-#         serializers.save()
-#         return Response(serializers.data, status=status.HTTP_201_CREATED)
-#     return Response(serializers.erros, status=status.HTTP_400_BAD_REQUEST)
+@api_view(['POST'])
+def domesticAdd(request):
+    main_data = request.POST.get('title')
+    subTitle = request.POST.get('subTitle')
+    content = request.POST.get('content')
+    try:
+        image_file = request.FILES.get('image')
+        if image_file:
+            ext = os.path.splitext(image_file.name)[1]  # 확장자 유지
+            new_filename = f"{uuid.uuid4().hex}{ext}"
+            image_file.name = new_filename  # 이미지 이름 변경
+    except Exception as e:
+        return Response(status=status.HTTP_400_BAD_REQUEST)
+    domestic = Local.objects.create(
+        title=main_data,
+        subTitle= subTitle,
+        content=content,
+        headerImage=image_file
+    )
+    domestic.save()
+    return Response(status=status.HTTP_201_CREATED)
+
+@api_view(['POST'])
+def domesticContnentAdd(request, id):
+    domestic = Local.objects.get(id=id)
+    title = request.POST.get('title')
+    content = request.POST.get('content')
+    try:
+        image_file = request.FILES.get('image')
+        if image_file:
+            ext = os.path.splitext(image_file.name)[1]  # 확장자 유지
+            new_filename = f"{uuid.uuid4().hex}{ext}"
+            image_file.name = new_filename  # 이미지 이름 변경
+    except Exception as e:
+        return Response(status=status.HTTP_400_BAD_REQUEST)
+    content_add = Local_content.objects.create(
+        title=title,
+        date=datetime.datetime.now(),
+        description=content,
+        image= image_file,
+        local=domestic
+    )
+    content_add.save()
+    return Response(status=status.HTTP_201_CREATED)
+
+
+@api_view(['POST'])
+def overseasAdd(request):
+    title = request.POST.get('title')
+    subTitle = request.POST.get('subTitle')
+    content = request.POST.get('content')
+    try:
+        image_file = request.FILES.get('image')
+        if image_file:
+            ext = os.path.splitext(image_file.name)[1]  # 확장자 유지
+            new_filename = f"{uuid.uuid4().hex}{ext}"
+            image_file.name = new_filename  # 이미지 이름 변경
+    except Exception as e:
+        return Response(status=status.HTTP_400_BAD_REQUEST)
+    domestic = Overseas.objects.create(
+        title=title,
+        subTitle= subTitle,
+        content=content,
+        headerImage=image_file
+    )
+    domestic.save()
+    return Response(status=status.HTTP_201_CREATED)
+
+@api_view(['POST'])
+def overseasContnentAdd(request, id):
+    main_data = Overseas.objects.get(id=id)
+    title = request.POST.get('title')
+    content = request.POST.get('content')
+    try:
+        image_file = request.FILES.get('image')
+        if image_file:
+            ext = os.path.splitext(image_file.name)[1]  # 확장자 유지
+            new_filename = f"{uuid.uuid4().hex}{ext}"
+            image_file.name = new_filename  # 이미지 이름 변경
+    except Exception as e:
+        return Response(status=status.HTTP_400_BAD_REQUEST)
+    content_add = Overseas_content.objects.create(
+        title=title,
+        date=datetime.datetime.now(),
+        description=content,
+        image= image_file,
+        overseas=main_data
+    )
+    content_add.save()
+    return Response(status=status.HTTP_201_CREATED)
 
 #국내 전시 컨탠츠 생성
 @api_view(['POST'])
@@ -91,7 +261,69 @@ def create_local_content(request):
         return Response(serializers.data, status=status.HTTP_201_CREATED)
     return Response(serializers.errors, status=status.HTTP_400_BAD_REQUEST)
 
-#대외사업
+#주력사업
+@api_view(['POST'])
+def activitiesAdd(request):
+    main_data = request.POST.get('title')
+    content = request.POST.get('content')
+    try:
+        image_file = request.FILES.get('image')
+        if image_file:
+            ext = os.path.splitext(image_file.name)[1]  # 확장자 유지
+            new_filename = f"{uuid.uuid4().hex}{ext}"
+            image_file.name = new_filename  # 이미지 이름 변경
+    except Exception as e:
+        return Response(status=status.HTTP_400_BAD_REQUEST)
+    domestic = Contests.objects.create(
+        title=main_data,
+        content=content,
+        headerImage=image_file
+    )
+    domestic.save()
+    return Response(status=status.HTTP_201_CREATED)
+
+@api_view(['POST'])
+def acticontentAdd(request, id):
+    print(id)
+    main_data = Contests.objects.get(id=id)
+    title = request.POST.get('title')
+    date = request.POST.get('date')
+    location = request.POST.get('location')
+    florists = request.POST.get('florists')
+    content = request.POST.get('content')
+    description = request.POST.get('description')
+    try:
+        image_file = request.FILES.get('image')
+        if image_file:
+            ext = os.path.splitext(image_file.name)[1]  # 확장자 유지
+            new_filename = f"{uuid.uuid4().hex}{ext}"
+            image_file.name = new_filename  # 이미지 이름 변경
+    except Exception as e:
+        return Response(status=status.HTTP_400_BAD_REQUEST)
+
+    acti_content = Contests_content.objects.create(
+        mainImage=image_file,
+        title=title,
+        date=date,
+        location=location,
+        content=content,
+        contests=main_data
+    )
+    acti_content.save()
+    gallery_create = Contents_gallery.objects.create(
+        title=title,
+        date=date,
+        description=description,
+        image=image_file,
+        target_content=main_data
+    )
+    gallery_create.save()
+    florists_create = Content_florist.objects.create(
+        name=florists,
+        target_content=acti_content
+    )
+    florists_create.save()
+    return Response(status=status.HTTP_201_CREATED)
 
 #대외사업 데이터 조회
 @api_view(['GET'])
@@ -124,6 +356,41 @@ def License_DataSet(request):
     license = License.objects.all()
     serializers = LicenseSetSerializer(license, many=True)
     return Response(serializers.data)
+
+@api_view(['POST'])
+def licenseAdd(request):
+    title = request.POST.get('title')
+    content = request.POST.get('content')
+    licenseInfo = request.POST.get('licenseInfo')
+    link = request.POST.get('link')
+
+    try:
+        image_file = request.FILES.get('image')
+        subImage = request.FILES.get('subImage')
+        if image_file:
+            ext = os.path.splitext(image_file.name)[1]  # 확장자 유지
+            new_filename = f"{uuid.uuid4().hex}{ext}"
+            image_file.name = new_filename  # 이미지 이름 변경
+        if subImage:
+            ext = os.path.splitext(subImage.name)[1]  # 확장자 유지
+            new_filename = f"{uuid.uuid4().hex}{ext}"
+            subImage.name = new_filename  # 이미지 이름 변경
+    except Exception as e:
+        return Response(status=status.HTTP_400_BAD_REQUEST)
+    license = License.objects.create(
+        title=title,
+        content=content,
+        headerImage=image_file
+    )
+    license.save()
+    license_content = License_content.objects.create(
+        image=subImage,
+        information=licenseInfo,
+        hyperlink=link,
+        license=license
+    )
+    license_content.save()
+    return Response(status=status.HTTP_201_CREATED)
 
 #자격증 메인 데이터셋 생성
 @api_view(['POST'])
@@ -178,6 +445,39 @@ def News_DataSet(request):
     serializers = NewsContentSetSerializer(content, many=True)
     return Response(serializers.data)
 
+@api_view(['POST'])
+def news_add(request):
+    title = request.POST.get('title')
+    category = request.POST.get('category')
+    sub_title = request.POST.get('sub_title')
+    content = request.POST.get('content')
+    image = request.FILES.get('image')
+    image_url = None
+    if image:
+        ext = os.path.splitext(image.name)[1]
+        new_filename = f"{uuid.uuid4().hex}{ext}"
+        filepath = os.path.join('uploads', new_filename)
+        saved_path = default_storage.save(filepath, image)
+        image_url = default_storage.url(saved_path)
+        print(f"저장된 이미지 이름: {new_filename}")
+
+    news_main = News.objects.create(
+        title=title,
+        content=sub_title,
+        image=image,
+        type=category
+    )
+
+    News_content.objects.create(
+        title=title,
+        content=content,
+        type=category,
+        news=news_main
+    )
+
+    return Response({'message': '성공'}, status=201)
+
+
 @api_view(['GET'])
 def News_data_id(request, id):
     if id is not None:
@@ -219,6 +519,25 @@ def Notice_DataSet(request):
 
     serializers = NoticeSetSerializer(content, many=True)
     return Response(serializers.data)
+
+@api_view(['POST'])
+def notice_add(request):
+    title = request.POST.get('title')
+    content = request.POST.get('content')
+    notice = Notice.objects.create(
+        title=title,
+        date=datetime.datetime.now()
+    )
+    notice.save()
+    notice_content =Notice_content.objects.create(
+        title=title,
+        date=datetime.datetime.now(),
+        content=content,
+        notice=notice
+    )
+    notice_content.save()
+
+    return Response(status=status.HTTP_201_CREATED)
 @api_view(['GET'])
 def Notice_detail(request, id):
     try:
@@ -287,3 +606,23 @@ def create_organizational_title(request):
     except Exception as e:
         print(e)
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+@api_view(['POST'])
+def upload_image(request):
+    image = request.FILES.get('file')
+
+    if not image:
+        return Response({'error': 'No file provided'}, status=status.HTTP_400_BAD_REQUEST)
+
+    # 고유한 파일 이름 생성
+    ext = os.path.splitext(image.name)[1]
+    filename = f"{uuid.uuid4().hex}{ext}"
+    filepath = os.path.join('uploads', filename)
+
+    # 파일 저장
+    saved_path = default_storage.save(filepath, image)
+
+    # 🔥 Cloudflare R2 URL 가져오기
+    image_url = default_storage.url(saved_path)
+
+    return Response({'url': image_url}, status=status.HTTP_201_CREATED)
