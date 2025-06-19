@@ -222,7 +222,7 @@ def overseasAdd(request):
         return Response(status=status.HTTP_400_BAD_REQUEST)
     domestic = Overseas.objects.create(
         title=title,
-        subTitle= subTitle,
+        sub_title= subTitle,
         content=content,
         headerImage=image_file
     )
@@ -418,6 +418,7 @@ def Contents_DataSet(request):
 
 @api_view(['GET'])
 def Content_detail_data(request, id):
+    print(id)
     detail_data = Contests_content.objects.get(id=id)
     serializers = ContestsContentSerializer(detail_data)
     return Response(serializers.data)

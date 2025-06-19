@@ -144,7 +144,7 @@ class License_content(models.Model):#자격증
     license = models.OneToOneField(License, on_delete=models.CASCADE, related_name='license_certification')
 
     def __str__(self):
-        return self.title
+        return self.information
 
 #주요산업 - 대외활동
 class Contests(models.Model):
