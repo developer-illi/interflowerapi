@@ -310,6 +310,7 @@ def acticontentAdd(request, id):
     )
     acti_content.save()
     gallery_create = Contents_gallery.objects.create(
+        id=acti_content.id,
         title=title,
         date=date,
         description=description,

@@ -61,7 +61,7 @@ urlpatterns = [
     path('license_post/content/', api_view.create_license_content, name='create_license_content'),
 
     # 주력사업
-    path('activity', api_view.Contents_DataSet, name='contents'),
+    path('activity/', api_view.Contents_DataSet, name='contents'),
     path('activitiesAdd', api_view.activitiesAdd, name='activitiesAdd'),
     path('acticontentAdd/<int:id>', api_view.acticontentAdd, name='acticontentAdd'),
     path('activity/<int:id>', api_view.Content_detail_data, name='contents_detail'),
