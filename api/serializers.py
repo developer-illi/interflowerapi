@@ -271,19 +271,25 @@ class NewsContentSetSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 class NoticeContentSerializer(serializers.ModelSerializer):
+    date = serializers.SerializerMethodField()
     class Meta:
         model = Notice_content
         fields = '__all__'
+    def get_date(self, obj):
+        return obj.date.strftime('%Y-%m-%d')
+
 class Notice_Set_Serializer(serializers.ModelSerializer):
     class Meta:
         model = Notice
         fields = '__all__'
 class NoticeSetSerializer(serializers.ModelSerializer):
     notice = NoticeContentSerializer(source='notice_content', read_only=True)
+    date = serializers.SerializerMethodField()
     class Meta:
         model = Notice
         fields = '__all__'
-
+    def get_date(self, obj):
+        return obj.date.strftime('%Y-%m-%d')
 
 # class ORGANIZATION_PRESIDENT_Serialzer(serializers.ModelSerializer):
 #     ORGANIZATION_PRESIDENT =
