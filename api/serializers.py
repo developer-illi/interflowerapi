@@ -156,7 +156,10 @@ class OverseasSetSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
     def get_mainImageList(self, obj):
-        return list(obj.overseas_mainImg.values_list('image', flat=True))
+        request = self.context.get('request')
+        if request:
+            return [request.build_absolute_uri(img.image.url) for img in obj.overseas_mainImg.all()]
+        return [img.image.url for img in obj.overseas_mainImg.all()]
     def get_galleryList(self, obj):
         # mainImageList 값과 동일하게 반환
         return OverseasContentSerializer(obj.overseas_mainImg.all(), many=True).data
