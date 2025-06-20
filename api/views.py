@@ -585,7 +585,63 @@ def organization_all_data(request):
         "vicePresidents": vice_president_data,
         "directors": director_data,
     })
-
+@api_view(['POST'])
+def organizational_add(request):
+    organ_type = request.POST.get('position')
+    name = request.POST.get('name')
+    try:
+        image_file = request.FILES.get('image')
+        if image_file:
+            ext = os.path.splitext(image_file.name)[1]  # 확장자 유지
+            new_filename = f"{uuid.uuid4().hex}{ext}"
+            image_file.name = new_filename  # 이미지 이름 변경
+    except Exception as e:
+        return Response(status=status.HTTP_400_BAD_REQUEST)
+        # 주요 경력 목록 추출
+    careers = []
+    for key in request.POST:
+        if key.startswith('career_'):
+            careers.append(request.POST[key])
+    if organ_type == '이사장':
+        organizational = ORGANIZATION_PRESIDENT.objects.create(
+            name=name,
+            image=image_file,
+            position='이사장'
+        )
+        organizational.save()
+        for carer_text in careers:
+            carees = ORGANIZATION_PRESIDENT_PROFILE.objects.create(
+                title=carer_text,
+                ORGANIZATION_PRESIDENT = organizational
+            )
+            carees.save()
+    if organ_type == '부이사장':
+        organizational = ORGANIZATION_VICE_PRESIDENT.objects.create(
+            name=name,
+            image=image_file,
+            position='부이사장'
+        )
+        organizational.save()
+        for carer_text in careers:
+            carees = ORGANIZATION_VICE_PRESIDENT_PROFILE.objects.create(
+                title=carer_text,
+                ORGANIZATION_VICE_PRESIDENT=organizational
+            )
+            carees.save()
+    else:
+        organizational = ORGANIZATION_DIRECTOR.objects.create(
+            name=name,
+            image=image_file,
+            position=str(organ_type)
+        )
+        organizational.save()
+        for carer_text in careers:
+            carees = ORGANIZATION_DIRECTOR_PROFILE.objects.create(
+                title=carer_text,
+                ORGANIZATION_DIRECTOR=organizational
+            )
+            carees.save()
+    return Response(status=status.HTTP_201_CREATED)
 @api_view(['POST'])
 def create_organizational_chart(request):
     serializer = or_chart_serializer(data=request.data)

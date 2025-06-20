@@ -65,7 +65,7 @@ class Organization_vicePresidentSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ORGANIZATION_VICE_PRESIDENT
-        fields = ['imgage', 'name', 'position', 'description']
+        fields = ['image', 'name', 'position', 'description']
 
     def get_description(self, obj):
         description = ORGANIZATION_VICE_PRESIDENT_PROFILE.objects.filter(ORGANIZATION_VICE_PRESIDENT=obj)
@@ -76,7 +76,7 @@ class Organization_directorerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ORGANIZATION_DIRECTOR
-        fields = ['imgage', 'name', 'position', 'description']
+        fields = ['image', 'name', 'position', 'description']
 
     def get_description(self, obj):
         description = ORGANIZATION_DIRECTOR_PROFILE.objects.filter(ORGANIZATION_DIRECTOR=obj)

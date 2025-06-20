@@ -41,6 +41,7 @@ urlpatterns = [
 
     # 조직도
     path('organization', api_view.organization_all_data, name='organizations'),
+    path('organization_add', api_view.organizational_add, name='organizations'),
     path('organizational_post/', api_view.create_organizational_chart, name='organizational_post'),
     path('organizational_post/title/', api_view.create_organizational_title, name='create_organizational_title'),
     # path('organizational/<int:id>/', api_view.Organizational_Detail, name='organizational-detail'),
