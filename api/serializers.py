@@ -30,7 +30,7 @@ class History_content_Serializer(serializers.ModelSerializer):
         model = History_content
         fields = '__all__'
 class HistoryContentSerializer(serializers.ModelSerializer):
-    event = HistoryEventSerializer(source='history_event_set', many=True, read_only=True)
+    events = HistoryEventSerializer(source='history_event_set', many=True, read_only=True)
     class Meta:
         model = History_content
         fields = '__all__'
