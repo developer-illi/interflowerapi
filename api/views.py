@@ -175,7 +175,7 @@ def domesticAdd(request):
 
             # 이미지 리사이즈 함수 적용
             from .utils import image_utile
-            image_file = image_utile.resize_image(image_file, width=800, quality=70)
+            image_file = image_utile.resize_image(image_file, width=1000, quality=80)
 
     except Exception as e:
         return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
@@ -202,7 +202,7 @@ def domesticContnentAdd(request, id):
             image_file.name = new_filename  # 이미지 이름 변경
 
             # ✅ 이미지 리사이즈 함수 적용
-            image_file = image_utile.resize_image(image_file, width=750, quality=70)
+            image_file = image_utile.resize_image(image_file, width=750, quality=80)
 
     except Exception as e:
         return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
@@ -230,7 +230,7 @@ def overseasAdd(request):
             new_filename = f"{uuid.uuid4().hex}{ext}"
             image_file.name = new_filename  # 이미지 이름 변경
 
-            image_file = image_utile.resize_image(image_file, width=750, quality=70)
+            image_file = image_utile.resize_image(image_file, width=1000, quality=80)
     except Exception as e:
         return Response(status=status.HTTP_400_BAD_REQUEST)
     domestic = Overseas.objects.create(
@@ -254,7 +254,7 @@ def overseasContnentAdd(request, id):
             new_filename = f"{uuid.uuid4().hex}{ext}"
             image_file.name = new_filename  # 이미지 이름 변경
 
-            image_file = image_utile.resize_image(image_file, width=750, quality=70)
+            image_file = image_utile.resize_image(image_file, width=750, quality=80)
     except Exception as e:
         return Response(status=status.HTTP_400_BAD_REQUEST)
     content_add = Overseas_content.objects.create(
@@ -288,7 +288,7 @@ def activitiesAdd(request):
             new_filename = f"{uuid.uuid4().hex}{ext}"
             image_file.name = new_filename  # 이미지 이름 변경
 
-            image_file = image_utile.resize_image(image_file, width=750, quality=70)
+            image_file = image_utile.resize_image(image_file, width=750, quality=80)
     except Exception as e:
         return Response(status=status.HTTP_400_BAD_REQUEST)
     domestic = Contests.objects.create(
@@ -315,7 +315,7 @@ def acticontentAdd(request, id):
             new_filename = f"{uuid.uuid4().hex}{ext}"
             image_file.name = new_filename  # 이미지 이름 변경
 
-            image_file = image_utile.resize_image(image_file, width=750, quality=70)
+            image_file = image_utile.resize_image(image_file, width=750, quality=80)
     except Exception as e:
         return Response(status=status.HTTP_400_BAD_REQUEST)
 
@@ -390,12 +390,12 @@ def licenseAdd(request):
             ext = os.path.splitext(image_file.name)[1]  # 확장자 유지
             new_filename = f"{uuid.uuid4().hex}{ext}"
             image_file.name = new_filename  # 이미지 이름 변경
-            image_file = image_utile.resize_image(image_file, width=750, quality=70)
+            image_file = image_utile.resize_image(image_file, width=750, quality=80)
         if subImage:
             ext = os.path.splitext(subImage.name)[1]  # 확장자 유지
             new_filename = f"{uuid.uuid4().hex}{ext}"
             subImage.name = new_filename  # 이미지 이름 변경
-            image_file = image_utile.resize_image(image_file, width=750, quality=70)
+            image_file = image_utile.resize_image(image_file, width=750, quality=80)
     except Exception as e:
         return Response(status=status.HTTP_400_BAD_REQUEST)
     license = License.objects.create(
@@ -482,7 +482,7 @@ def news_add(request):
         saved_path = default_storage.save(filepath, image)
         image_url = default_storage.url(saved_path)
 
-        image = image_utile.resize_image(image, width=750, quality=70)
+        image = image_utile.resize_image(image, width=750, quality=80)
         print(f"저장된 이미지 이름: {new_filename}")
 
     news_main = News.objects.create(
@@ -618,7 +618,7 @@ def organizational_add(request):
             ext = os.path.splitext(image_file.name)[1]  # 확장자 유지
             new_filename = f"{uuid.uuid4().hex}{ext}"
             image_file.name = new_filename  # 이미지 이름 변경
-            image_file = image_utile.resize_image(image_file, width=750, quality=70)
+            image_file = image_utile.resize_image(image_file, width=750, quality=80)
     except Exception as e:
         return Response(status=status.HTTP_400_BAD_REQUEST)
         # 주요 경력 목록 추출
@@ -691,7 +691,7 @@ def create_organizational_title(request):
 @api_view(['POST'])
 def upload_image(request):
     image = request.FILES.get('file')
-    image = image_utile.resize_image(image, width=750, quality=70)
+    image = image_utile.resize_image(image, width=750, quality=80)
     if not image:
         return Response({'error': 'No file provided'}, status=status.HTTP_400_BAD_REQUEST)
 

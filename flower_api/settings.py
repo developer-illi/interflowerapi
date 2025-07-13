@@ -103,7 +103,7 @@ DATABASES = {
     }
 }
 # 테스트 환경
-# DATABASES = {
+# DATABASES = {plk,
 #     'default': {
 #         'ENGINE': 'django.db.backends.postgresql',
 #         'NAME': 'flower_test2',
