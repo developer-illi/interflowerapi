@@ -70,7 +70,7 @@ urlpatterns = [
     # path('contents_post/content/', api_view.create_content_content, name='create_content_content'),
 
     # 협회소식
-    path('news', api_view.News_DataSet, name='news'),
+    path('news/', api_view.News_DataSet, name='news'),
     path('news_add', api_view.news_add, name='news_add'),
     path('news/<int:id>', api_view.News_data_id, name='news_id'),
     path('news_post/', api_view.create_news, name='create_news'),

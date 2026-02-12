@@ -16,6 +16,7 @@ class Greeting_name_Serializer(serializers.ModelSerializer):
 
 class Greeting_Dataset(serializers.ModelSerializer):
     writer = Greeting_name_Serializer(source='greeting_user', many=True, read_only=True)
+
     class Meta:
         model = Association_greeting
         fields = '__all__'

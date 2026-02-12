@@ -53,7 +53,7 @@ class History_event(models.Model):
 #협회 소식
 class News(models.Model):
     CATEGORY_CHOICES = [
-        ('issue', '최근이슈'),
+        ('issues', '최근이슈'),
         ('report', '보도자료'),
     ]
 
@@ -73,7 +73,7 @@ class News(models.Model):
 #협회 소식 -- 내용
 class News_content(models.Model):
     BLOCK_TYPES = (
-        ('issue', '최근이슈'),
+        ('issues', '최근이슈'),
         ('report', '보도자료'),
         # ('video', 'Video'), 등 추가 가능
     )
