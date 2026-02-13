@@ -520,7 +520,18 @@ def create_news(request):
         return Response(serializers.data, status=status.HTTP_201_CREATED)
     return Response(serializers.data, status=status.HTTP_400_BAD_REQUEST)
 
-#협회소식 content 생성
+@api_view(['GET'])
+def del_news(request, id):
+    print('ddwd')
+    try:
+        ori_content = News.objects.get(id=id)
+    except News.DoesNotExist:
+        raise NotFound(detail="해당 이벤트가 존재하지 않습니다.")
+
+    ori_content.delete()
+    serializer = NewsContentSetSerializer(ori_content)
+    return Response(serializer.data, status=status.HTTP_200_OK)
+
 @api_view(['POST'])
 def create_news_content(request):
     serializers = NewsContent_Set_Serializer(request.data)

@@ -74,6 +74,7 @@ urlpatterns = [
     path('news_add', api_view.news_add, name='news_add'),
     path('news/<int:id>', api_view.News_data_id, name='news_id'),
     path('news_post/', api_view.create_news, name='create_news'),
+    path('news_delte/<int:id>', api_view.del_news, name='del_news'),
     path('news_post/content/', api_view.create_news_content, name='create_news_content'),
 
     # 공지사항
