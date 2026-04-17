@@ -26,7 +26,7 @@ from django.contrib import admin
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('greeing/', api_view.Greeting_DataSet, name='greeing'),
+    path('greeting/', api_view.Greeting_DataSet, name='greeting'),
     # 리소스별로 구조 정리
     # 연혁
 
@@ -36,8 +36,8 @@ urlpatterns = [
     path('history_post/event', api_view.create_his_event, name='create_his_event'),
     path('history_add', api_view.history_add, name='History_add'),
     path('history_event_add/<int:id>', api_view.history_event_add, name='history_event_add'),
-    path('history_arter/<int:id>', api_view.arter_his_event, name='arter_his_event'),
-    path('history_del/<int:id>', api_view.del_his_event, name='del_his_event'),
+    path('history_update/<int:id>', api_view.arter_his_event, name='history_update'),
+    path('history_delete/<int:id>', api_view.del_his_event, name='history_delete'),
 
     # 조직도
     path('organization', api_view.organization_all_data, name='organizations'),
@@ -74,7 +74,7 @@ urlpatterns = [
     path('news_add', api_view.news_add, name='news_add'),
     path('news/<int:id>', api_view.News_data_id, name='news_id'),
     path('news_post/', api_view.create_news, name='create_news'),
-    path('news_delte/<int:id>', api_view.del_news, name='del_news'),
+    path('news_delete/<int:id>', api_view.del_news, name='news_delete'),
     path('news_post/content/', api_view.create_news_content, name='create_news_content'),
 
     # 공지사항

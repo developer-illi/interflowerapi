@@ -27,10 +27,15 @@ SECRET_KEY = config('SECRET_KEY')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = config('DJANGO_DEBUG', default=False, cast=bool)
 
-ALLOWED_HOSTS = ['*']
-CSRF_TRUSTED_ORIGINS = [
-    'https://port-0-interflowerapi-m8majoul75b3ab86.sel4.cloudtype.app',
-]
+ALLOWED_HOSTS = config(
+    'ALLOWED_HOSTS',
+    default='port-0-interflowerapi-m8majoul75b3ab86.sel4.cloudtype.app,localhost,127.0.0.1'
+).split(',')
+
+CSRF_TRUSTED_ORIGINS = config(
+    'CSRF_TRUSTED_ORIGINS',
+    default='https://port-0-interflowerapi-m8majoul75b3ab86.sel4.cloudtype.app'
+).split(',')
 
 # Application definition
 
@@ -61,10 +66,11 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-CORS_ALLOW_ALL_ORIGINS = True
-# CORS_ALLOWED_ORIGINS = [
-#     "http://localhost:3000",  # Next.js dev 서버 주소
-# ]
+CORS_ALLOW_ALL_ORIGINS = False
+CORS_ALLOWED_ORIGINS = config(
+    'CORS_ALLOWED_ORIGINS',
+    default='https://i-fa.or.kr,http://localhost:3000'
+).split(',')
 ROOT_URLCONF = 'flower_api.urls'
 
 TEMPLATES = [
