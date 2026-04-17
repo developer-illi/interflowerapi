@@ -415,6 +415,33 @@ def create_news(request):
         return Response(serializers.data, status=status.HTTP_201_CREATED)
     return Response(serializers.data, status=status.HTTP_400_BAD_REQUEST)
 
+@api_view(['PATCH'])
+def news_update(request, id):
+    try:
+        news = News.objects.get(id=id)
+    except News.DoesNotExist:
+        raise NotFound(detail="해당 뉴스가 존재하지 않습니다.")
+
+    news.title = request.POST.get('title', news.title)
+    news.type = request.POST.get('category', news.type)
+    news.content = request.POST.get('sub_title', news.content)
+
+    image = image_utile.process_request_image(request)
+    if image:
+        news.image = image
+    news.save()
+
+    try:
+        news_content = News_content.objects.get(news=news)
+        news_content.title = news.title
+        news_content.type = news.type
+        news_content.content = request.POST.get('content', news_content.content)
+        news_content.save()
+    except News_content.DoesNotExist:
+        pass
+
+    return Response({'message': '수정 완료'}, status=status.HTTP_200_OK)
+
 @api_view(['DELETE'])
 def del_news(request, id):
     try:

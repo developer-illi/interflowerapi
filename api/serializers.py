@@ -259,9 +259,20 @@ class News_Set_Serializer(serializers.ModelSerializer):
 
 class News_id_data_serializer(serializers.ModelSerializer):
     date = serializers.DateTimeField(format="%Y-%m-%d %H:%M")
+    sub_title = serializers.SerializerMethodField()
+    image = serializers.SerializerMethodField()
+
     class Meta:
         model = News_content
         fields = '__all__'
+
+    def get_sub_title(self, obj):
+        return obj.news.content
+
+    def get_image(self, obj):
+        if obj.news.image:
+            return obj.news.image.url
+        return None
 
 class NewsContentSetSerializer(serializers.ModelSerializer):
     blocks = NewsContent_Set_Serializer(source='News_content', many=True, read_only=True)  # blocks는 related_name
