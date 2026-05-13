@@ -167,14 +167,22 @@ CLOUDFLARE_R2_BUCKET = config('CLOUDFLARE_R2_BUCKET', cast=str, default='interfl
 CLOUDFLARE_R2_ACCESS_KEY = config('CLOUDFLARE_R2_ACCESS_KEY')
 CLOUDFLARE_R2_SECRET_KEY = config('CLOUDFLARE_R2_SECRET_KEY')
 CLOUDFLARE_R2_BUCKET_ENDPOINT = config('CLOUDFLARE_R2_BUCKET_ENDPOINT')
+CLOUDFLARE_R2_PUBLIC_DOMAIN = config(
+    'CLOUDFLARE_R2_PUBLIC_DOMAIN',
+    default='pub-00c7810e8aff4d90ad376bc7bf8481f0.r2.dev',
+)
 
+# R2는 ACL을 지원하지 않으므로 default_acl을 보내면 업로드가 거부됨.
+# querystring_auth=False + custom_domain으로 만료되지 않는 public URL을 반환.
 CLOUDFLARE_R2_BUCKET_CONFIG_OPTIONS = {
     'bucket_name': CLOUDFLARE_R2_BUCKET,
     'access_key': CLOUDFLARE_R2_ACCESS_KEY,
     'secret_key': CLOUDFLARE_R2_SECRET_KEY,
     'endpoint_url': CLOUDFLARE_R2_BUCKET_ENDPOINT,
-    'default_acl': 'public-read',
-    'signature_version': 's3v4'
+    'signature_version': 's3v4',
+    'region_name': 'auto',
+    'querystring_auth': False,
+    'custom_domain': CLOUDFLARE_R2_PUBLIC_DOMAIN,
 }
 # # Cloudflare R2 를 Django 파일 저장소로 사용 설정
 STORAGES = {
