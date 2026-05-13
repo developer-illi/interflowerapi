@@ -66,6 +66,10 @@ urlpatterns = [
     path('activitiesAdd', api_view.activitiesAdd, name='activitiesAdd'),
     path('acticontentAdd/<int:id>', api_view.acticontentAdd, name='acticontentAdd'),
     path('activity/<int:id>', api_view.Content_detail_data, name='contents_detail'),
+    path('activity_update/<int:id>', api_view.activity_update, name='activity_update'),
+    path('activity_delete/<int:id>', api_view.activity_delete, name='activity_delete'),
+    path('acticontent_update/<int:id>', api_view.acticontent_update, name='acticontent_update'),
+    path('acticontent_delete/<int:id>', api_view.acticontent_delete, name='acticontent_delete'),
     # path('contents_post/', api_view.create_content, name='create_content'),
     # path('contents_post/content/', api_view.create_content_content, name='create_content_content'),
 

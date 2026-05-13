@@ -348,6 +348,93 @@ def Content_detail_data(request, id):
     return Response(serializers.data)
 
 
+@api_view(['PATCH'])
+def activity_update(request, id):
+    try:
+        activity = Contests.objects.get(id=id)
+    except Contests.DoesNotExist:
+        raise NotFound(detail="해당 주요사업이 존재하지 않습니다.")
+
+    activity.title = request.POST.get('title', activity.title)
+    activity.content = request.POST.get('content', activity.content)
+
+    image = image_utile.process_request_image(request)
+    if image:
+        activity.headerImage = image
+    activity.save()
+
+    return Response({'message': '수정 완료'}, status=status.HTTP_200_OK)
+
+
+@api_view(['DELETE'])
+def activity_delete(request, id):
+    try:
+        activity = Contests.objects.get(id=id)
+    except Contests.DoesNotExist:
+        raise NotFound(detail="해당 주요사업이 존재하지 않습니다.")
+
+    activity.delete()
+    return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+@api_view(['PATCH'])
+def acticontent_update(request, id):
+    try:
+        acti_content = Contests_content.objects.get(id=id)
+    except Contests_content.DoesNotExist:
+        raise NotFound(detail="해당 활동 내역이 존재하지 않습니다.")
+
+    title = request.POST.get('title', acti_content.title)
+    date = request.POST.get('date', acti_content.date)
+    location = request.POST.get('location', acti_content.location)
+    content = request.POST.get('content', acti_content.content)
+    description = request.POST.get('description')
+    florists = request.POST.get('florists')
+
+    acti_content.title = title
+    acti_content.date = date
+    acti_content.location = location
+    acti_content.content = content
+
+    image = image_utile.process_request_image(request)
+    if image:
+        acti_content.mainImage = image
+    acti_content.save()
+
+    # 같은 id로 함께 생성된 갤러리도 동기화
+    try:
+        gallery = Contents_gallery.objects.get(id=id)
+        gallery.title = title
+        gallery.date = date
+        if description is not None:
+            gallery.description = description
+        if image:
+            gallery.image = image
+        gallery.save()
+    except Contents_gallery.DoesNotExist:
+        pass
+
+    # 플로리스트는 전체 교체 (생성 시에도 단일 row 생성)
+    if florists is not None:
+        Content_florist.objects.filter(target_content=acti_content).delete()
+        Content_florist.objects.create(name=florists, target_content=acti_content)
+
+    return Response({'message': '수정 완료'}, status=status.HTTP_200_OK)
+
+
+@api_view(['DELETE'])
+def acticontent_delete(request, id):
+    try:
+        acti_content = Contests_content.objects.get(id=id)
+    except Contests_content.DoesNotExist:
+        raise NotFound(detail="해당 활동 내역이 존재하지 않습니다.")
+
+    # 같은 id로 생성된 갤러리 row도 함께 제거 (FK가 Contests라 자동 CASCADE 안 됨)
+    Contents_gallery.objects.filter(id=id).delete()
+    acti_content.delete()
+    return Response(status=status.HTTP_204_NO_CONTENT)
+
+
 #주요사업 메인 데이터셋 생성
 #주요사업 컨텐츠 생성
 @api_view(['POST'])
