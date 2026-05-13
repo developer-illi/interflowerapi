@@ -214,6 +214,121 @@ def create_local_content(request):
         return Response(serializers.data, status=status.HTTP_201_CREATED)
     return Response(serializers.errors, status=status.HTTP_400_BAD_REQUEST)
 
+
+# 국내전시 수정/삭제
+@api_view(['PATCH'])
+def domestic_update(request, id):
+    try:
+        local = Local.objects.get(id=id)
+    except Local.DoesNotExist:
+        raise NotFound(detail="해당 국내전시가 존재하지 않습니다.")
+
+    local.title = request.POST.get('title', local.title)
+    local.subTitle = request.POST.get('subTitle', local.subTitle)
+    local.content = request.POST.get('content', local.content)
+    image = image_utile.process_request_image(request)
+    if image:
+        local.headerImage = image
+    local.save()
+    return Response({'message': '수정 완료'}, status=status.HTTP_200_OK)
+
+
+@api_view(['DELETE'])
+def domestic_delete(request, id):
+    try:
+        local = Local.objects.get(id=id)
+    except Local.DoesNotExist:
+        raise NotFound(detail="해당 국내전시가 존재하지 않습니다.")
+    local.delete()
+    return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+@api_view(['DELETE'])
+def domestic_content_delete(request, id):
+    try:
+        item = Local_content.objects.get(id=id)
+    except Local_content.DoesNotExist:
+        raise NotFound(detail="해당 항목이 존재하지 않습니다.")
+    item.delete()
+    return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+# 국외전시 수정/삭제
+@api_view(['PATCH'])
+def overseas_update(request, id):
+    try:
+        overseas = Overseas.objects.get(id=id)
+    except Overseas.DoesNotExist:
+        raise NotFound(detail="해당 국외전시가 존재하지 않습니다.")
+
+    overseas.title = request.POST.get('title', overseas.title)
+    overseas.sub_title = request.POST.get('subTitle', overseas.sub_title)
+    overseas.content = request.POST.get('content', overseas.content)
+    image = image_utile.process_request_image(request)
+    if image:
+        overseas.headerImage = image
+    overseas.save()
+    return Response({'message': '수정 완료'}, status=status.HTTP_200_OK)
+
+
+@api_view(['DELETE'])
+def overseas_delete(request, id):
+    try:
+        overseas = Overseas.objects.get(id=id)
+    except Overseas.DoesNotExist:
+        raise NotFound(detail="해당 국외전시가 존재하지 않습니다.")
+    overseas.delete()
+    return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+@api_view(['DELETE'])
+def overseas_content_delete(request, id):
+    try:
+        item = Overseas_content.objects.get(id=id)
+    except Overseas_content.DoesNotExist:
+        raise NotFound(detail="해당 항목이 존재하지 않습니다.")
+    item.delete()
+    return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+# 자격증 수정/삭제
+@api_view(['PATCH'])
+def license_update(request, id):
+    try:
+        license = License.objects.get(id=id)
+    except License.DoesNotExist:
+        raise NotFound(detail="해당 자격증이 존재하지 않습니다.")
+
+    license.title = request.POST.get('title', license.title)
+    license.content = request.POST.get('content', license.content)
+    header_image = image_utile.process_request_image(request)
+    if header_image:
+        license.headerImage = header_image
+    license.save()
+
+    try:
+        license_content = license.license_certification
+        license_content.information = request.POST.get('licenseInfo', license_content.information)
+        license_content.hyperlink = request.POST.get('link', license_content.hyperlink)
+        sub_image = image_utile.process_request_image(request, field='subImage')
+        if sub_image:
+            license_content.image = sub_image
+        license_content.save()
+    except License_content.DoesNotExist:
+        pass
+
+    return Response({'message': '수정 완료'}, status=status.HTTP_200_OK)
+
+
+@api_view(['DELETE'])
+def license_delete(request, id):
+    try:
+        license = License.objects.get(id=id)
+    except License.DoesNotExist:
+        raise NotFound(detail="해당 자격증이 존재하지 않습니다.")
+    license.delete()
+    return Response(status=status.HTTP_204_NO_CONTENT)
+
 #주력사업
 @api_view(['POST'])
 def activitiesAdd(request):

@@ -54,12 +54,20 @@ urlpatterns = [
     path('internationalContentAdd/<int:id>', api_view.overseasContnentAdd, name='domesticAdd'),
     # path('local_post/', api_view.create_local, name='create_local'),
     path('local_post/content/', api_view.create_local_content, name='create_local_content'),
+    path('domestic_update/<int:id>', api_view.domestic_update, name='domestic_update'),
+    path('domestic_delete/<int:id>', api_view.domestic_delete, name='domestic_delete'),
+    path('domestic_content_delete/<int:id>', api_view.domestic_content_delete, name='domestic_content_delete'),
+    path('overseas_update/<int:id>', api_view.overseas_update, name='overseas_update'),
+    path('overseas_delete/<int:id>', api_view.overseas_delete, name='overseas_delete'),
+    path('overseas_content_delete/<int:id>', api_view.overseas_content_delete, name='overseas_content_delete'),
 
     # 자격증
     path('license', api_view.License_DataSet, name='license'),
     path('licenseAdd', api_view.licenseAdd, name='licenseAdd'),
     path('license_post/', api_view.create_license, name='create_license'),
     path('license_post/content/', api_view.create_license_content, name='create_license_content'),
+    path('license_update/<int:id>', api_view.license_update, name='license_update'),
+    path('license_delete/<int:id>', api_view.license_delete, name='license_delete'),
 
     # 주력사업
     path('activity', api_view.Contents_DataSet, name='contents'),
