@@ -196,6 +196,42 @@ STORAGES = {
     }
 }
 
+# 쓰기 API 인증 강제 여부. 프론트가 토큰을 싣도록 수정된 뒤 True 로 전환할 것. (P2-4)
+ENFORCE_WRITE_AUTH = config('ENFORCE_WRITE_AUTH', default=False, cast=bool)
+
+REST_FRAMEWORK = {
+    # 미처리 예외를 HTML 500 대신 JSON 으로 반환 (P0-1)
+    'EXCEPTION_HANDLER': 'api.exception_handlers.json_exception_handler',
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+        'rest_framework.authentication.SessionAuthentication',
+    ),
+    'DEFAULT_PERMISSION_CLASSES': (
+        'api.permissions.ReadOnlyOrAuthenticated',
+    ),
+}
+
+from datetime import timedelta  # noqa: E402
+
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': timedelta(hours=12),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=14),
+    'ROTATE_REFRESH_TOKENS': True,
+}
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'console': {'class': 'logging.StreamHandler'},
+    },
+    'root': {'handlers': ['console'], 'level': 'INFO'},
+    'loggers': {
+        'django.request': {'handlers': ['console'], 'level': 'ERROR', 'propagate': False},
+        'api': {'handlers': ['console'], 'level': 'INFO', 'propagate': False},
+    },
+}
+
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
 

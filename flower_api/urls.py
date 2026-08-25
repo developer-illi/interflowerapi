@@ -20,6 +20,9 @@ from api import views as api_view
 from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib import admin
+from rest_framework_simplejwt.views import (
+    TokenObtainPairView, TokenRefreshView, TokenVerifyView,
+)
 
 # api 라우터 세팅
 
@@ -92,13 +95,27 @@ urlpatterns = [
 
     # 공지사항
     path('notice', api_view.Notice_DataSet, name='notice'),
-    path('notice_add', api_view.notice_add, name='notice'),
-    path('notice/<int:id>', api_view.Notice_detail, name='notice'),
+    path('notice_add', api_view.notice_add, name='notice_add'),
+    path('notice/<int:id>', api_view.Notice_detail, name='notice_detail'),
+    path('notice_update/<int:id>', api_view.notice_update, name='notice_update'),
+    path('notice_delete/<int:id>', api_view.notice_delete, name='notice_delete'),
+    path('notice_attachment_delete/<int:id>', api_view.notice_attachment_delete,
+         name='notice_attachment_delete'),
     path('notice_post/', api_view.create_notice, name='create_notice'),
     path('notice_post/content/', api_view.create_notice_content, name='create_notice_content'),
 
     path('api/upload', api_view.upload_image, name='upload_image'),
+
+    # 관리자 인증 (P2-4). ENFORCE_WRITE_AUTH=True 로 전환하기 전에는
+    # 토큰이 없어도 쓰기가 허용되므로 배포만으로 기존 동작이 깨지지 않는다.
+    path('auth/token', TokenObtainPairView.as_view(), name='token_obtain_pair'),
+    path('auth/token/refresh', TokenRefreshView.as_view(), name='token_refresh'),
+    path('auth/token/verify', TokenVerifyView.as_view(), name='token_verify'),
 ]
+
+# 미처리 예외도 HTML 이 아닌 JSON 으로 응답
+handler500 = 'api.exception_handlers.server_error'
+handler404 = 'api.exception_handlers.not_found'
 
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

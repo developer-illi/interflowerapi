@@ -176,3 +176,6 @@ cython_debug/
 
 # PyPI configuration file
 .pypirc
+
+# 데이터 이관/삭제 커맨드가 남기는 백업 (운영 데이터 포함)
+backups/

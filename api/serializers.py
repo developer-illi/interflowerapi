@@ -3,6 +3,21 @@
 from rest_framework import serializers
 from .models import *
 
+
+def safe_file_url(file_field):
+    """파일이 실제로 붙어 있을 때만 URL을 반환.
+
+    ImageField 가 비어 있는데 .url 에 접근하면 ValueError 가 나고,
+    그 한 건 때문에 목록 API 전체가 500 이 된다.
+    (운영 DB api_local_content id=93 → GET /exhibition?type=domestic 전체 장애)
+    """
+    if not file_field:
+        return None
+    try:
+        return file_field.url
+    except (ValueError, AttributeError):
+        return None
+
 #인삿말
 class Greeting_Serializer(serializers.ModelSerializer):
     class Meta:
@@ -123,9 +138,11 @@ class LocalSetSerializer(serializers.ModelSerializer):
         model = Local
         fields = '__all__'
     def get_mainImageList(self, obj):
-        return [img.image.url for img in obj.local_mainImg.all()]
+        urls = [safe_file_url(img.image) for img in obj.local_mainImg.all()]
+        return [url for url in urls if url]
+
     def get_galleryList(self, obj):
-        # mainImageList 값과 동일하게 반환
+        # mainImageList 값과 동일하게 반환 (모델 Meta.ordering 으로 최신순)
         return Local_ContentSetSerializer(obj.local_mainImg.all(), many=True).data
 
 #국외전시
@@ -151,6 +168,9 @@ class Overseas_Set_Serializer(serializers.ModelSerializer):
 class OverseasSetSerializer(serializers.ModelSerializer):
     mainImageList = serializers.SerializerMethodField()
     galleryList = serializers.SerializerMethodField()
+    # 프론트는 camelCase(subTitle)를 읽는데 이 모델만 sub_title 이라 표시가 안 됐다.
+    # 기존 sub_title 키는 하위호환으로 그대로 두고 subTitle 을 추가한다. (P2-1)
+    subTitle = serializers.CharField(source='sub_title', read_only=True)
 
     class Meta:
         model = Overseas
@@ -158,11 +178,16 @@ class OverseasSetSerializer(serializers.ModelSerializer):
 
     def get_mainImageList(self, obj):
         request = self.context.get('request')
-        if request:
-            return [request.build_absolute_uri(img.image.url) for img in obj.overseas_mainImg.all()]
-        return [img.image.url for img in obj.overseas_mainImg.all()]
+        urls = []
+        for img in obj.overseas_mainImg.all():
+            url = safe_file_url(img.image)
+            if not url:
+                continue
+            urls.append(request.build_absolute_uri(url) if request else url)
+        return urls
+
     def get_galleryList(self, obj):
-        # mainImageList 값과 동일하게 반환
+        # mainImageList 값과 동일하게 반환 (모델 Meta.ordering 으로 최신순)
         return OverseasContentSerializer(obj.overseas_mainImg.all(), many=True).data
 
 #자격증
@@ -236,7 +261,7 @@ class ContestsSerializer(serializers.ModelSerializer):
 
     def get_galleryList(self, obj):
         return Cotent_gallerySerializer(
-            obj.content_gallery.order_by('-id'),  # ⭐ 여기서만 정렬 ⭐
+            obj.content_gallery.order_by('-date', '-id'),
             many=True
         ).data
 
@@ -275,20 +300,39 @@ class News_id_data_serializer(serializers.ModelSerializer):
         return None
 
 class NewsContentSetSerializer(serializers.ModelSerializer):
-    blocks = NewsContent_Set_Serializer(source='News_content', many=True, read_only=True)  # blocks는 related_name
+    # source 가 'News_content' 로 잘못돼 있어 read_only 특성상 에러 없이
+    # blocks 필드가 응답에서 통째로 빠져 있었다. related_name 은 'blocks'.
+    blocks = NewsContent_Set_Serializer(many=True, read_only=True)
     date = serializers.DateTimeField(format="%Y-%m-%d %H:%M")
 
     class Meta:
         model = News
         fields = '__all__'
 
+class NoticeAttachmentSerializer(serializers.ModelSerializer):
+    url = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Notice_attachment
+        fields = ['id', 'name', 'url', 'size']
+
+    def get_url(self, obj):
+        return safe_file_url(obj.file)
+
+
 class NoticeContentSerializer(serializers.ModelSerializer):
     date = serializers.SerializerMethodField()
+    attachments = serializers.SerializerMethodField()
+
     class Meta:
         model = Notice_content
         fields = '__all__'
+
     def get_date(self, obj):
         return obj.date.strftime('%Y-%m-%d')
+
+    def get_attachments(self, obj):
+        return NoticeAttachmentSerializer(obj.notice.attachments.all(), many=True).data
 
 class Notice_Set_Serializer(serializers.ModelSerializer):
     class Meta:
@@ -297,11 +341,17 @@ class Notice_Set_Serializer(serializers.ModelSerializer):
 class NoticeSetSerializer(serializers.ModelSerializer):
     notice = NoticeContentSerializer(source='notice_content', read_only=True)
     date = serializers.SerializerMethodField()
+    attachmentCount = serializers.SerializerMethodField()
+
     class Meta:
         model = Notice
         fields = '__all__'
+
     def get_date(self, obj):
         return obj.date.strftime('%Y-%m-%d')
+
+    def get_attachmentCount(self, obj):
+        return obj.attachments.count()
 
 # class ORGANIZATION_PRESIDENT_Serialzer(serializers.ModelSerializer):
 #     ORGANIZATION_PRESIDENT =

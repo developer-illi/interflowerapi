@@ -2,14 +2,42 @@ import datetime
 
 from rest_framework import viewsets
 from .serializers import *
-from rest_framework.exceptions import NotFound
+from rest_framework.exceptions import NotFound, ValidationError
 from rest_framework.response import Response
 from rest_framework.decorators import api_view
 from rest_framework import status
 from django.db.models import Q
+from django.utils import timezone
+from django.utils.dateparse import parse_datetime, parse_date
 import os
 from django.core.files.storage import default_storage
+from django.db import transaction
 from api.utils import image_utile
+
+
+def parse_date_or_now(value, fallback=None):
+    """관리자 폼이 보내온 날짜 문자열을 datetime 으로. 비었거나 못 읽으면 fallback.
+
+    이전에는 date 필드가 auto_now 라 무슨 값을 넣든 무시됐지만,
+    이제 실제로 저장되므로 파싱에 실패했을 때 NULL 이 들어가지 않도록 방어한다.
+    """
+    if fallback is None:
+        fallback = timezone.now()
+    if isinstance(value, datetime.datetime):
+        return value
+    if not value:
+        return fallback
+
+    parsed = parse_datetime(str(value))
+    if parsed is None:
+        day = parse_date(str(value))
+        if day is not None:
+            parsed = datetime.datetime.combine(day, datetime.time.min)
+    if parsed is None:
+        return fallback
+    if timezone.is_naive(parsed):
+        parsed = timezone.make_aware(parsed, timezone.get_default_timezone())
+    return parsed
 
 class Greeting_ViewSet(viewsets.ModelViewSet):
     queryset = Association_greeting.objects.all()
@@ -81,9 +109,11 @@ def history_event_add(request, id):
         return Response(status=status.HTTP_201_CREATED)
 
     except History_set_up.DoesNotExist:
-        return Response({"error": "해당 ID의 연혁이 존재하지 않습니다."}, status=status.HTTP_404_NOT_FOUND)
+        return Response({"detail": "해당 ID의 연혁이 존재하지 않습니다.", "error": "해당 ID의 연혁이 존재하지 않습니다."}, status=status.HTTP_404_NOT_FOUND)
+    except ValidationError:
+        raise  # 이미지 검증 실패 등은 DRF 핸들러가 {'detail': ...} 로 정리한다
     except Exception as e:
-        return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        return Response({"detail": str(e), "error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 
 @api_view(['POST'])
@@ -124,24 +154,37 @@ def del_his_event(request, id):
     ori_content.delete()
     return Response(status=status.HTTP_204_NO_CONTENT)
 
-#국내전시
+#국내/국외전시
+# 이전에는 'domestic' 이외의 모든 값(오타/누락 포함)이 조용히 국외전시로 폴백됐다.
+DOMESTIC_TYPES = {'domestic'}
+INTERNATIONAL_TYPES = {'international', 'overseas'}  # overseas 는 하위호환
+
+
 @api_view(['GET'])
 def Local_DataSet(request):
-    get_data_type = request.GET.get('type')
-    if get_data_type in ['domestic']:
-        data_set = Local.objects.all()
+    get_data_type = (request.GET.get('type') or '').strip().lower()
+
+    if get_data_type in DOMESTIC_TYPES:
+        data_set = Local.objects.all().order_by('id')
         serializers = LocalSetSerializer(data_set, many=True)
-    else:
-        data_set = Overseas.objects.all()
+    elif get_data_type in INTERNATIONAL_TYPES:
+        data_set = Overseas.objects.all().order_by('id')
         serializers = OverseasSetSerializer(data_set, many=True)
+    else:
+        return Response(
+            {'detail': "invalid type. 'domestic' 또는 'international' 만 허용합니다."},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
     return Response(serializers.data)
 
 @api_view(['POST'])
 def domesticAdd(request):
     try:
         image_file = image_utile.process_request_image(request)
+    except ValidationError:
+        raise  # 이미지 검증 실패 등은 DRF 핸들러가 {'detail': ...} 로 정리한다
     except Exception as e:
-        return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        return Response({"detail": str(e), "error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
     Local.objects.create(
         title=request.POST.get('title'),
@@ -157,13 +200,15 @@ def domesticContnentAdd(request, id):
         domestic = Local.objects.get(id=id)
         image_file = image_utile.process_request_image(request)
     except Local.DoesNotExist:
-        return Response({"error": "해당 전시가 존재하지 않습니다."}, status=status.HTTP_404_NOT_FOUND)
+        return Response({"detail": "해당 전시가 존재하지 않습니다.", "error": "해당 전시가 존재하지 않습니다."}, status=status.HTTP_404_NOT_FOUND)
+    except ValidationError:
+        raise  # 이미지 검증 실패 등은 DRF 핸들러가 {'detail': ...} 로 정리한다
     except Exception as e:
-        return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        return Response({"detail": str(e), "error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
     Local_content.objects.create(
         title=request.POST.get('title'),
-        date=datetime.datetime.now(),
+        date=timezone.now(),
         description=request.POST.get('content'),
         image=image_file,
         local=domestic
@@ -175,8 +220,10 @@ def domesticContnentAdd(request, id):
 def overseasAdd(request):
     try:
         image_file = image_utile.process_request_image(request)
+    except ValidationError:
+        raise  # 이미지 검증 실패 등은 DRF 핸들러가 {'detail': ...} 로 정리한다
     except Exception as e:
-        return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        return Response({"detail": str(e), "error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
     Overseas.objects.create(
         title=request.POST.get('title'),
@@ -192,13 +239,15 @@ def overseasContnentAdd(request, id):
         main_data = Overseas.objects.get(id=id)
         image_file = image_utile.process_request_image(request)
     except Overseas.DoesNotExist:
-        return Response({"error": "해당 전시가 존재하지 않습니다."}, status=status.HTTP_404_NOT_FOUND)
+        return Response({"detail": "해당 전시가 존재하지 않습니다.", "error": "해당 전시가 존재하지 않습니다."}, status=status.HTTP_404_NOT_FOUND)
+    except ValidationError:
+        raise  # 이미지 검증 실패 등은 DRF 핸들러가 {'detail': ...} 로 정리한다
     except Exception as e:
-        return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        return Response({"detail": str(e), "error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
     Overseas_content.objects.create(
         title=request.POST.get('title'),
-        date=datetime.datetime.now(),
+        date=timezone.now(),
         description=request.POST.get('content'),
         image=image_file,
         overseas=main_data
@@ -334,8 +383,10 @@ def license_delete(request, id):
 def activitiesAdd(request):
     try:
         image_file = image_utile.process_request_image(request)
+    except ValidationError:
+        raise  # 이미지 검증 실패 등은 DRF 핸들러가 {'detail': ...} 로 정리한다
     except Exception as e:
-        return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        return Response({"detail": str(e), "error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
     Contests.objects.create(
         title=request.POST.get('title'),
@@ -350,12 +401,14 @@ def acticontentAdd(request, id):
         main_data = Contests.objects.get(id=id)
         image_file = image_utile.process_request_image(request)
     except Contests.DoesNotExist:
-        return Response({"error": "해당 사업이 존재하지 않습니다."}, status=status.HTTP_404_NOT_FOUND)
+        return Response({"detail": "해당 사업이 존재하지 않습니다.", "error": "해당 사업이 존재하지 않습니다."}, status=status.HTTP_404_NOT_FOUND)
+    except ValidationError:
+        raise  # 이미지 검증 실패 등은 DRF 핸들러가 {'detail': ...} 로 정리한다
     except Exception as e:
-        return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        return Response({"detail": str(e), "error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
     title = request.POST.get('title')
-    date = request.POST.get('date')
+    date = parse_date_or_now(request.POST.get('date'))
 
     acti_content = Contests_content.objects.create(
         mainImage=image_file,
@@ -382,7 +435,7 @@ def acticontentAdd(request, id):
 #대외사업 데이터 조회
 @api_view(['GET'])
 def Overseas_DataSet(request):
-    overseas = Overseas.objects.all()
+    overseas = Overseas.objects.all().order_by('id')
     serializers = OverseasContentSerializer(overseas, many=True)
     return Response(serializers.data)
 
@@ -407,7 +460,7 @@ def create_overseas_content(request):
 #자격증
 @api_view(['GET'])
 def License_DataSet(request):
-    license = License.objects.all()
+    license = License.objects.all().order_by('id')
     serializers = LicenseSetSerializer(license, many=True)
     return Response(serializers.data)
 
@@ -416,8 +469,10 @@ def licenseAdd(request):
     try:
         image_file = image_utile.process_request_image(request)
         sub_image = image_utile.process_request_image(request, field='subImage')
+    except ValidationError:
+        raise  # 이미지 검증 실패 등은 DRF 핸들러가 {'detail': ...} 로 정리한다
     except Exception as e:
-        return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        return Response({"detail": str(e), "error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
     license = License.objects.create(
         title=request.POST.get('title'),
@@ -500,7 +555,7 @@ def acticontent_update(request, id):
         raise NotFound(detail="해당 활동 내역이 존재하지 않습니다.")
 
     title = request.POST.get('title', acti_content.title)
-    date = request.POST.get('date', acti_content.date)
+    date = parse_date_or_now(request.POST.get('date'), fallback=acti_content.date)
     location = request.POST.get('location', acti_content.location)
     content = request.POST.get('content', acti_content.content)
     description = request.POST.get('description')
@@ -565,10 +620,11 @@ def create_content_content(request):
 def News_DataSet(request):
     get_type = request.GET.get('type')
     if get_type in ['report', 'issues']:
-        type_id = get_type
-        content = News.objects.filter(type=type_id)
+        content = News.objects.filter(type=get_type)
     else:
         content = News.objects.all()
+    # 정렬이 없어 DB가 주는 임의 순서로 나갔다. 최신 우선으로 고정. (P0-3)
+    content = content.order_by('-date', '-id')
     serializers = NewsContentSetSerializer(content, many=True)
     return Response(serializers.data)
 
@@ -670,31 +726,61 @@ def Notice_DataSet(request):
         # title 또는 content 에서 검색
         content = Notice.objects.filter(
             Q(title__icontains=search_keyword)
-        ).order_by('-id')  # 필요시 정렬
+        ).order_by('-date', '-id')
     else:
-        content = Notice.objects.all().order_by('-id')
+        content = Notice.objects.all().order_by('-date', '-id')
+
+    # attachments / notice_content 를 행마다 조회하지 않도록 미리 가져온다
+    content = content.prefetch_related('attachments').select_related('notice_content')
 
     serializers = NoticeSetSerializer(content, many=True)
     return Response(serializers.data)
+
+def _save_notice_attachments(notice, uploaded_files):
+    """multipart 의 files 키로 올라온 파일들을 검증 후 저장."""
+    saved = []
+    for uploaded in uploaded_files:
+        image_utile.validate_attachment(uploaded)  # 위반 시 ValidationError(400)
+        original_name = uploaded.name
+        uploaded.name = image_utile.generate_unique_filename(original_name)
+        saved.append(Notice_attachment.objects.create(
+            notice=notice,
+            file=uploaded,
+            name=original_name,   # 한글 원본 파일명 보존
+            size=uploaded.size,
+        ))
+    return saved
+
 
 @api_view(['POST'])
 def notice_add(request):
     title = request.POST.get('title')
     content = request.POST.get('content')
-    notice = Notice.objects.create(
-        title=title,
-        date=datetime.datetime.now()
-    )
-    notice.save()
-    notice_content =Notice_content.objects.create(
-        title=title,
-        date=datetime.datetime.now(),
-        content=content,
-        notice=notice
-    )
-    notice_content.save()
 
-    return Response(status=status.HTTP_201_CREATED)
+    if not title:
+        return Response({'detail': '제목은 필수입니다.'}, status=status.HTTP_400_BAD_REQUEST)
+
+    uploaded_files = request.FILES.getlist('files')
+    for uploaded in uploaded_files:
+        image_utile.validate_attachment(uploaded)
+
+    with transaction.atomic():
+        now = timezone.now()
+        notice = Notice.objects.create(title=title, date=now)
+        Notice_content.objects.create(
+            title=title,
+            date=now,
+            content=content,
+            notice=notice,
+        )
+        _save_notice_attachments(notice, uploaded_files)
+
+    return Response(
+        {'id': notice.id, 'attachmentCount': notice.attachments.count()},
+        status=status.HTTP_201_CREATED,
+    )
+
+
 @api_view(['GET'])
 def Notice_detail(request, id):
     try:
@@ -703,9 +789,75 @@ def Notice_detail(request, id):
         serializer = NoticeContentSerializer(set_up_data)
         return Response(serializer.data)
     except Notice.DoesNotExist:
-        return Response({"error": "Notice not found"}, status=404)
+        return Response({"detail": "Notice not found", "error": "Notice not found"}, status=404)
     except Notice_content.DoesNotExist:
-        return Response({"error": "Notice content not found"}, status=404)
+        return Response({"detail": "Notice content not found", "error": "Notice content not found"}, status=404)
+
+@api_view(['PATCH'])
+def notice_update(request, id):
+    try:
+        notice = Notice.objects.get(id=id)
+    except Notice.DoesNotExist:
+        raise NotFound(detail="해당 공지가 존재하지 않습니다.")
+
+    uploaded_files = request.FILES.getlist('files')
+    for uploaded in uploaded_files:
+        image_utile.validate_attachment(uploaded)
+
+    with transaction.atomic():
+        title = request.POST.get('title', notice.title)
+        notice.title = title
+        # date 는 건드리지 않는다. 수정만으로 등록일이 오늘로 튀면 목록 정렬이 망가진다.
+        notice.save()
+
+        try:
+            notice_content = notice.notice_content
+        except Notice_content.DoesNotExist:
+            notice_content = Notice_content(notice=notice, date=notice.date)
+
+        notice_content.title = title
+        # content 는 NOT NULL 이라 None 이 들어가면 IntegrityError
+        notice_content.content = request.POST.get('content', notice_content.content) or ''
+        notice_content.save()
+
+        # 첨부는 덧붙이는 방식. 개별 삭제는 notice_attachment_delete 사용.
+        _save_notice_attachments(notice, uploaded_files)
+
+    return Response({
+        'message': '수정 완료',
+        'id': notice.id,
+        'attachments': NoticeAttachmentSerializer(notice.attachments.all(), many=True).data,
+    }, status=status.HTTP_200_OK)
+
+
+@api_view(['DELETE'])
+def notice_delete(request, id):
+    try:
+        notice = Notice.objects.get(id=id)
+    except Notice.DoesNotExist:
+        raise NotFound(detail="해당 공지가 존재하지 않습니다.")
+
+    # CASCADE 로 행만 지우면 R2 객체가 고아로 남으므로 파일부터 정리
+    for attachment in notice.attachments.all():
+        if attachment.file:
+            attachment.file.delete(save=False)
+
+    notice.delete()
+    return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+@api_view(['DELETE'])
+def notice_attachment_delete(request, id):
+    try:
+        attachment = Notice_attachment.objects.get(id=id)
+    except Notice_attachment.DoesNotExist:
+        raise NotFound(detail="해당 첨부파일이 존재하지 않습니다.")
+
+    if attachment.file:
+        attachment.file.delete(save=False)
+    attachment.delete()
+    return Response(status=status.HTTP_204_NO_CONTENT)
+
 
 #공지사항 메인 데이터셋 생성
 @api_view(['POST'])
@@ -747,8 +899,10 @@ def organizational_add(request):
     name = request.POST.get('name')
     try:
         image_file = image_utile.process_request_image(request)
+    except ValidationError:
+        raise  # 이미지 검증 실패 등은 DRF 핸들러가 {'detail': ...} 로 정리한다
     except Exception as e:
-        return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        return Response({"detail": str(e), "error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
     careers = []
     for key in request.POST:
@@ -814,7 +968,7 @@ def create_organizational_title(request):
 def upload_image(request):
     image = image_utile.process_request_image(request, field='file')
     if not image:
-        return Response({'error': 'No file provided'}, status=status.HTTP_400_BAD_REQUEST)
+        return Response({'detail': 'No file provided', 'error': 'No file provided'}, status=status.HTTP_400_BAD_REQUEST)
 
     filepath = os.path.join('uploads', image.name)
     saved_path = default_storage.save(filepath, image)

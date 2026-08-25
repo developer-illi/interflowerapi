@@ -63,10 +63,15 @@ class News(models.Model):
     date = models.DateTimeField(auto_now_add=True)
     type = models.CharField(max_length=10, choices=CATEGORY_CHOICES, default='issue')
 
+    class Meta:
+        # 목록 API 기본 정렬: 최신 우선 (P0-3)
+        ordering = ['-date', '-id']
+
     def update_category(self):
         if timezone.now() - self.date > timedelta(days=7):
             self.type = 'report'
             self.save()
+
     def __str__(self):
         return self.title
 
@@ -83,6 +88,9 @@ class News_content(models.Model):
     date = models.DateTimeField(auto_now_add=True)
     news = models.ForeignKey(News, related_name='blocks', on_delete=models.CASCADE)
 
+    class Meta:
+        ordering = ['-date', '-id']
+
 #주요 사업
 
 #주요사업 -- 국내전시
@@ -98,10 +106,14 @@ class Local(models.Model):
 #주요사업 - 국제꽃장식대회 - content
 class Local_content(models.Model):#국내전시 - sub_content
     title = models.CharField(max_length=100, null=False, default='flower')
-    date = models.DateTimeField(auto_now_add=True)
+    # auto_now_add 는 뷰가 넘긴 date 를 무시해버려서 default 로 변경
+    date = models.DateTimeField(default=timezone.now)
     description = models.TextField(null=True, default=None)
     image = models.ImageField(upload_to='media/Local_sub_content', null=True, blank=True)
     local = models.ForeignKey(Local, on_delete=models.CASCADE, related_name='local_mainImg')
+
+    class Meta:
+        ordering = ['-date', '-id']
 
     def __str__(self):
         return self.title
@@ -119,10 +131,13 @@ class Overseas(models.Model):#국외전시
 #주요산업 - 국외전시 - subcontent
 class Overseas_content(models.Model):#국외전시 - sub_content
     title = models.CharField(max_length=100, null=False, default='flower')
-    date = models.DateTimeField(auto_now_add=True)
+    date = models.DateTimeField(default=timezone.now)
     description = models.TextField(null=True, default=None)
     image = models.ImageField(upload_to='media/Overseas_sub_content', null=True, blank=True)
     overseas = models.ForeignKey(Overseas, on_delete=models.CASCADE, related_name='overseas_mainImg')
+
+    class Meta:
+        ordering = ['-date', '-id']
 
     def __str__(self):
         return self.title
@@ -159,20 +174,28 @@ class Contests(models.Model):
 class Contests_content(models.Model):
     mainImage = models.ImageField(upload_to='media/contents', null=True, default='/media/default.png')
     title = models.CharField(max_length=200, null=False, default='대외활동')
-    date = models.DateTimeField(auto_now=True)
+    # auto_now 는 저장할 때마다 오늘 날짜로 덮어써서 관리자가 입력한 날짜가 사라졌다
+    date = models.DateTimeField(default=timezone.now)
     location = models.TextField(null=True, default='내용이 없습니다.')
     content = models.TextField(null=True)
     contests = models.ForeignKey(Contests, related_name='contest_title', on_delete=models.CASCADE)
+
+    class Meta:
+        ordering = ['-date', '-id']
 
     def __str__(self):
         return self.title
 
 class Contents_gallery(models.Model):
     title = models.CharField(max_length=50, null=True,default=None)
-    date = models.DateTimeField(auto_now=True)
+    date = models.DateTimeField(default=timezone.now)
     description = models.TextField(default=None, null=True)
     image = models.ImageField(upload_to='media/content', null=True, default='/media/defalut.png', blank=True)
     target_content = models.ForeignKey(Contests, related_name='content_gallery', on_delete=models.CASCADE)
+
+    class Meta:
+        ordering = ['-date', '-id']
+
     def __str__(self):
         return self.title
 
@@ -187,20 +210,43 @@ class Content_florist(models.Model):
 #공지사항
 class Notice(models.Model):
     title = models.CharField(max_length=200, null=False)
-    date = models.DateTimeField(auto_now=True)
+    # auto_now 였을 때는 글을 수정만 해도 등록일이 오늘로 바뀌었다
+    date = models.DateTimeField(default=timezone.now)
+
+    class Meta:
+        ordering = ['-date', '-id']
 
     def __str__(self):
-        self.title
+        # return 이 빠져 있어 admin 에서 TypeError 가 났다
+        return self.title
 
 #공지사항 - 게시판내용
 class Notice_content(models.Model):
     title = models.CharField(max_length=100, null=True, default=None)  # 텍스트 내용이거나, 이미지 URL, 동영상 링크 등
-    date = models.DateTimeField(auto_now=True)  # 게시글 내 노출 순서
+    date = models.DateTimeField(default=timezone.now)
     content = models.TextField(default=None)
     notice = models.OneToOneField(Notice, related_name='notice_content', on_delete=models.CASCADE)
 
+    class Meta:
+        ordering = ['-date', '-id']
+
     def __str__(self):
         return self.title
+
+
+#공지사항 - 첨부파일 (다운로드용, 본문 삽입 이미지와는 별개)
+class Notice_attachment(models.Model):
+    notice = models.ForeignKey(Notice, related_name='attachments', on_delete=models.CASCADE)
+    file = models.FileField(upload_to='media/notice_files')
+    name = models.CharField(max_length=255)          # 사용자가 올린 원본 파일명 (한글 보존)
+    size = models.PositiveBigIntegerField(default=0)  # bytes
+    uploaded_at = models.DateTimeField(default=timezone.now)
+
+    class Meta:
+        ordering = ['id']
+
+    def __str__(self):
+        return self.name
 
 
 #조직도 메인 트리
